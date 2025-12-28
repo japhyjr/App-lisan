@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App-lisan API Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    .dashboard {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .section {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: #f8f9ff;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
+    }
+
+    .section h2 {
+      color: #764ba2;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 2px solid #ddd;
+    }
+
+    .card.enabled {
+      border-color: #4CAF50;
+      background: #e8f5e9;
+    }
+
+    .card.disabled {
+      border-color: #e0e0e0;
+      background: #fafafa;
+      opacity: 0.7;
+    }
+
+    .card h3 {
+      color: #333;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status.active {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .status.inactive {
+      background: #ccc;
+      color: #666;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s;
+      margin-right: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.danger {
+      background: #e74c3c;
+    }
+
+    button.danger:hover {
+      background: #c0392b;
+    }
+
+    .test-area {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f8f9ff;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+
+    .result.success {
+      border-left-color: #4CAF50;
+      background: #e8f5e9;
+    }
+
+    .result.error {
+      border-left-color: #e74c3c;
+      background: #ffebee;
+    }
+
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    .stats-table th,
+    .stats-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .stats-table th {
+      background: #667eea;
+      color: white;
+      font-weight: 600;
+    }
+
+    .stats-table tr:hover {
+      background: #f5f5f5;
+    }
+
+    .info-box {
+      padding: 1rem;
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 8px;
+      color: #856404;
+      margin-bottom: 1rem;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    code {
+      background: #f5f5f5;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h1>🗣️ App-lisan API Dashboard</h1>
+    <p class="subtitle">Test and monitor your translation APIs</p>
+
+    <!-- Provider Status -->
+    <div class="section">
+      <h2>📡 API Provider Status</h2>
+      <div class="grid" id="providerStatus"></div>
+    </div>
+
+    <!-- Quick Test -->
+    <div class="section">
+      <h2>🧪 Quick Translation Test</h2>
+      <div class="test-area">
+        <textarea id="testInput" placeholder="Enter text to translate..."></textarea>
+        <div style="margin-top: 1rem;">
+          <button onclick="testTranslate('ar', 'en')">Arabic → English</button>
+          <button onclick="testTranslate('en', 'ar')">English → Arabic</button>
+          <button onclick="clearTest()">Clear</button>
+        </div>
+        <div id="testResult"></div>
+      </div>
+    </div>
+
+    <!-- Connection Tests -->
+    <div class="section">
+      <h2>🔌 Connection Tests</h2>
+      <div class="info-box">
+        ⚠️ These tests will make real API calls. Make sure you have API keys configured!
+      </div>
+      <button onclick="testAllConnections()">Test All Providers</button>
+      <button onclick="testProvider('claude')">Test Claude</button>
+      <button onclick="testProvider('google')">Test Google</button>
+      <button onclick="testProvider('azure')">Test Azure</button>
+      <button onclick="testProvider('deepl')">Test DeepL</button>
+      <button onclick="testProvider('libre')">Test LibreTranslate</button>
+      <div id="connectionResults"></div>
+    </div>
+
+    <!-- Usage Statistics -->
+    <div class="section">
+      <h2>📊 Usage Statistics</h2>
+      <button onclick="loadStats()">Refresh Stats</button>
+      <button onclick="resetStats()" class="danger">Reset Stats</button>
+      <table class="stats-table" id="statsTable">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody id="statsBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Cache Management -->
+    <div class="section">
+      <h2>💾 Cache Management</h2>
+      <button onclick="viewCache()">View Cache</button>
+      <button onclick="clearCache()" class="danger">Clear Cache</button>
+      <div id="cacheInfo"></div>
+    </div>
+
+    <!-- Configuration Helper -->
+    <div class="section">
+      <h2>⚙️ Configuration Helper</h2>
+      <p style="margin-bottom: 1rem;">
+        To activate an API provider, add your key to <code>config.js</code>:
+      </p>
+      <div style="background: #2d2d2d; color: #fff; padding: 1rem; border-radius: 8px; overflow-x: auto;">
+        <pre style="margin: 0;">
+// In config.js, find the provider and update:
+claude: {
+  enabled: true,           // ← Change to true
+  apiKey: 'sk-ant-xxx',    // ← Add your key
+  // ...
+}
+
+// Then enable features:
+const FEATURES = {
+  aiTranslation: true,     // ← Enable AI translation
+  // ...
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Scripts -->
+  <script src="phrases.js"></script>
+  <script src="lessons.js"></script>
+  <script src="config.js"></script>
+  <script src="api-engine.js"></script>
+
+  <script>
+    // Load provider status on page load
+    window.addEventListener('load', () => {
+      loadProviderStatus();
+      loadStats();
+    });
+
+    // Load provider status
+    function loadProviderStatus() {
+      const container = document.getElementById('providerStatus');
+      const providers = ['claude', 'google', 'azure', 'deepl', 'libre', 'dictionary'];
+      
+      container.innerHTML = '';
+      
+      providers.forEach(provider => {
+        const isReady = window.LISAN_CONFIG.isProviderReady(provider);
+        const config = window.LISAN_CONFIG.API_CONFIG[provider] || {};
+        
+        const card = document.createElement('div');
+        card.className = `card ${isReady ? 'enabled' : 'disabled'}`;
+        
+        let providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
+        if (provider === 'libre') providerName = 'LibreTranslate';
+        
+        card.innerHTML = `
+          <h3>${providerName}</h3>
+          <span class="status ${isReady ? 'active' : 'inactive'}">
+            ${isReady ? '✓ Active' : '○ Inactive'}
+          </span>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
+            ${isReady ? '✓ API key configured' : '○ No API key'}
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+
+    // Test translation
+    async function testTranslate(sourceLang, targetLang) {
+      const input = document.getElementById('testInput').value.trim();
+      const resultDiv = document.getElementById('testResult');
+      
+      if (!input) {
+        alert('Please enter text to translate');
+        return;
+      }
+      
+      resultDiv.innerHTML = '<div class="loading"></div> Translating...';
+      
+      try {
+        const result = await window.LISAN_API.smartTranslate(input, sourceLang, targetLang);
+        
+        resultDiv.innerHTML = `
+          <div class="result success">
+<strong>Translation:</strong>
+${result.translation}
+
+<strong>Provider:</strong> ${result.provider}
+<strong>Confidence:</strong> ${(result.confidence * 100).toFixed(0)}%
+${result.pronunciation ? `<strong>Pronunciation:</strong> ${result.pronunciation}` : ''}
+          </div>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <div class="result error">
+<strong>Error:</strong>
+${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // Test specific provider
+    async function testProvider(provider) {
+      const resultsDiv = document.getElementById('connectionResults');
+      resultsDiv.innerHTML = `<div class="loading"></div> Testing ${provider}...`;
+      
+      try {
+        const result = await window.LISAN_CONFIG.testApiConnection(provider);
+        
+        resultsDiv.innerHTML = `
+          <div class="result ${result.success ? 'success' : 'error'}" style="margin-top: 1rem;">
+<strong>${provider.toUpperCase()} Test:</strong>
+Status: ${result.success ? '✓ Success' : '✗ Failed'}
+Message: ${result.message}
+${result.result ? `Translation: ${result.result.translation}` : ''}
+          </div>
+        `;
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="result error" style="margin-top: 1rem;">
+<strong>${provider.toUpperCase()} Test Failed:</strong>
+${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // Test all connections
+    async function testAllConnections() {
+      const providers = window.LISAN_CONFIG.getAvailableProviders();
+      const resultsDiv = document.getElementById('connectionResults');
+      resultsDiv.innerHTML = '<div class="loading"></div> Testing all providers...';
+      
+      let results = '<h3 style="margin-top: 1rem; margin-bottom: 1rem;">Connection Test Results:</h3>';
+      
+      for (const provider of providers) {
+        try {
+          const result = await window.LISAN_CONFIG.testApiConnection(provider);
+          results += `
+            <div class="result ${result.success ? 'success' : 'error'}" style="margin-bottom: 1rem;">
+<strong>${provider.toUpperCase()}:</strong> ${result.success ? '✓ Connected' : '✗ Failed'}
+${result.message}
+            </div>
+          `;
+        } catch (error) {
+          results += `
+            <div class="result error" style="margin-bottom: 1rem;">
+<strong>${provider.toUpperCase()}:</strong> ✗ Error - ${error.message}
+            </div>
+          `;
+        }
+      }
+      
+      resultsDiv.innerHTML = results;
+    }
+
+    // Load statistics
+    function loadStats() {
+      const report = window.LISAN_CONFIG.usageStats.getReport();
+      const tbody = document.getElementById('statsBody');
+      
+      tbody.innerHTML = `
+        <tr>
+          <td><strong>Total Requests</strong></td>
+          <td>${report.total}</td>
+        </tr>
+        <tr>
+          <td><strong>Cache Hit Rate</strong></td>
+          <td>${report.cacheHitRate}</td>
+        </tr>
+        <tr>
+          <td><strong>Estimated Cost</strong></td>
+          <td>$${report.totalCost.toFixed(4)}</td>
+        </tr>
+        <tr>
+          <td><strong>Active Provider</strong></td>
+          <td>${window.LISAN_CONFIG.getActiveProvider()}</td>
+        </tr>
+      `;
+      
+      // Add per-provider stats
+      for (const [provider, count] of Object.entries(report.byProvider)) {
+        const cost = report.costs[provider] || 0;
+        tbody.innerHTML += `
+          <tr>
+            <td>${provider}</td>
+            <td>${count} requests ($${cost.toFixed(4)})</td>
+          </tr>
+        `;
+      }
+    }
+
+    // Reset statistics
+    function resetStats() {
+      if (confirm('Are you sure you want to reset all statistics?')) {
+        window.LISAN_CONFIG.usageStats.reset();
+        loadStats();
+        alert('Statistics reset!');
+      }
+    }
+
+    // View cache
+    async function viewCache() {
+      const infoDiv = document.getElementById('cacheInfo');
+      infoDiv.innerHTML = '<div class="loading"></div> Loading cache...';
+      
+      try {
+        const db = await indexedDB.open('AppLisanCache', 1);
+        const tx = db.transaction(['translations'], 'readonly');
+        const store = tx.objectStore('translations');
+        const request = store.getAll();
+        
+        request.onsuccess = () => {
+          const items = request.result;
+          
+          if (items.length === 0) {
+            infoDiv.innerHTML = `
+              <div class="result" style="margin-top: 1rem;">
+                Cache is empty
+              </div>
+            `;
+            return;
+          }
+          
+          infoDiv.innerHTML = `
+            <div class="result success" style="margin-top: 1rem;">
+<strong>Cache Contents:</strong>
+Total items: ${items.length}
+
+First 5 entries:
+${items.slice(0, 5).map(item => `
+- ${item.text} → ${item.translation} (${item.provider})
+`).join('')}
+            </div>
+          `;
+        };
+      } catch (error) {
+        infoDiv.innerHTML = `
+          <div class="result error" style="margin-top: 1rem;">
+            Error loading cache: ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // Clear cache
+    async function clearCache() {
+      if (!confirm('Are you sure you want to clear the cache?')) return;
+      
+      const infoDiv = document.getElementById('cacheInfo');
+      
+      try {
+        const db = await indexedDB.open('AppLisanCache', 1);
+        const tx = db.transaction(['translations'], 'readwrite');
+        const store = tx.objectStore('translations');
+        store.clear();
+        
+        infoDiv.innerHTML = `
+          <div class="result success" style="margin-top: 1rem;">
+            ✓ Cache cleared successfully!
+          </div>
+        `;
+      } catch (error) {
+        infoDiv.innerHTML = `
+          <div class="result error" style="margin-top: 1rem;">
+            Error clearing cache: ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // Clear test
+    function clearTest() {
+      document.getElementById('testInput').value = '';
+      document.getElementById('testResult').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
