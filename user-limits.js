@@ -15,7 +15,7 @@
 
 const LIMITS_CONFIG = {
     free: {
-      dailyTranslations: 10,
+      dailyTranslations: 5,
       resetHour: 0 // Midnight local time
     },
     premium: {
@@ -425,4 +425,5 @@ const LIMITS_CONFIG = {
   }
   
   ═══════════════════════════════════════════════════════════════
+
   */
