@@ -1,768 +1,755 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Go Premium - App-lisan | Unlimited Arabic Translation</title>
-  <meta name="description" content="Unlock unlimited AI-powered Arabic translations. Choose your plan and start learning without limits!">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Premium - App-lisan | Unlock Unlimited Arabic Learning</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
+    :root {
+      --primary: #667eea;
+      --secondary: #764ba2;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --bg: #ffffff;
+      --bg-light: #f8fafc;
+      --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Inter', sans-serif;
       line-height: 1.6;
-      color: #333;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
+      color: var(--text);
+      background: var(--bg-light);
     }
-    
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
     /* Header */
-    .header {
-      background: rgba(255, 255, 255, 0.95);
-      padding: 1rem 2rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #667eea;
-      text-decoration: none;
-    }
-    
-    .back-link {
-      color: #667eea;
-      text-decoration: none;
-      font-weight: 600;
-      transition: opacity 0.3s;
-    }
-    
-    .back-link:hover {
-      opacity: 0.7;
-    }
-    
-    /* Hero Section */
-    .hero {
+    header {
       text-align: center;
-      padding: 4rem 2rem 2rem;
-      color: white;
+      margin-bottom: 60px;
     }
-    
-    .hero h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      animation: fadeInUp 0.6s ease;
+
+    h1 {
+      font-size: 56px;
+      font-weight: 900;
+      margin-bottom: 16px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    
-    .hero p {
-      font-size: 1.2rem;
-      max-width: 600px;
-      margin: 0 auto 2rem;
-      opacity: 0.95;
-      animation: fadeInUp 0.6s ease 0.2s both;
+
+    .subtitle {
+      font-size: 24px;
+      color: var(--text-light);
+      margin-bottom: 32px;
     }
-    
-    /* Pricing Section */
-    .pricing-section {
-      padding: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3rem;
-    }
-    
-    .pricing-card {
+
+    .billing-toggle {
+      display: inline-flex;
       background: white;
-      border-radius: 20px;
-      padding: 2.5rem;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-      transition: transform 0.3s, box-shadow 0.3s;
-      position: relative;
-      animation: fadeInUp 0.6s ease;
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-    
-    .pricing-card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    }
-    
-    .pricing-card.featured {
-      border: 3px solid #667eea;
-      transform: scale(1.05);
-    }
-    
-    .badge {
-      position: absolute;
-      top: -15px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      padding: 0.5rem 1.5rem;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-    
-    .plan-name {
-      font-size: 1.5rem;
-      color: #667eea;
-      margin-bottom: 1rem;
-      font-weight: bold;
-    }
-    
-    .price {
-      font-size: 3rem;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 0.5rem;
-    }
-    
-    .price span {
-      font-size: 1.2rem;
-      color: #666;
-      font-weight: normal;
-    }
-    
-    .price-note {
-      color: #999;
-      font-size: 0.9rem;
-      margin-bottom: 2rem;
-    }
-    
-    .features {
-      list-style: none;
-      margin-bottom: 2rem;
-    }
-    
-    .features li {
-      padding: 0.75rem 0;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: flex-start;
-      gap: 0.75rem;
-    }
-    
-    .features li:last-child {
-      border-bottom: none;
-    }
-    
-    .check {
-      color: #4CAF50;
-      font-weight: bold;
-      font-size: 1.2rem;
-    }
-    
-    .cross {
-      color: #ccc;
-      font-weight: bold;
-      font-size: 1.2rem;
-    }
-    
-    .cta-button {
-      width: 100%;
-      padding: 1rem 2rem;
+
+    .billing-toggle button {
+      padding: 12px 32px;
       border: none;
-      border-radius: 50px;
-      font-size: 1.1rem;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
-      text-decoration: none;
-      display: block;
-      text-align: center;
+      position: relative;
     }
-    
-    .cta-button.primary {
-      background: linear-gradient(135deg, #667eea, #764ba2);
+
+    .billing-toggle button.active {
+      background: var(--gradient);
       color: white;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
-    
-    .cta-button.primary:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+
+    .save-badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: var(--success);
+      color: white;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 700;
     }
-    
-    .cta-button.secondary {
+
+    /* Pricing Cards */
+    .pricing-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 32px;
+      margin-bottom: 80px;
+    }
+
+    .pricing-card {
       background: white;
-      color: #667eea;
-      border: 2px solid #667eea;
+      border-radius: 24px;
+      padding: 48px 40px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      position: relative;
+      transition: all 0.3s;
+      border: 3px solid transparent;
     }
-    
-    .cta-button.secondary:hover {
-      background: #f8f9ff;
+
+    .pricing-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.15);
     }
-    
-    .cta-button.free {
-      background: #4CAF50;
+
+    .pricing-card.premium {
+      border-color: var(--primary);
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
     }
-    
-    .cta-button.free:hover {
-      background: #45a049;
+
+    .pricing-card.premium:hover {
+      transform: scale(1.05) translateY(-8px);
     }
-    
-    /* Features Comparison */
+
+    .popular-badge {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fbbf24;
+      color: #92400e;
+      padding: 8px 24px;
+      border-radius: 24px;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(251,191,36,0.4);
+    }
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+
+    .pricing-card.premium .card-header {
+      border-bottom-color: rgba(255,255,255,0.2);
+    }
+
+    .plan-name {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .price {
+      font-size: 64px;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .price span {
+      font-size: 24px;
+      font-weight: 600;
+      opacity: 0.7;
+    }
+
+    .annual-price {
+      font-size: 16px;
+      margin-top: 8px;
+      opacity: 0.8;
+    }
+
+    .plan-description {
+      font-size: 16px;
+      opacity: 0.8;
+    }
+
+    .features-list {
+      list-style: none;
+      margin: 32px 0;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      font-size: 16px;
+    }
+
+    .feature-item.highlight {
+      font-weight: 700;
+      font-size: 18px;
+      padding: 16px 0;
+    }
+
+    .feature-icon {
+      flex-shrink: 0;
+      font-size: 20px;
+    }
+
+    .feature-item.disabled {
+      opacity: 0.4;
+    }
+
+    .btn-select {
+      width: 100%;
+      padding: 18px 32px;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 16px;
+    }
+
+    .btn-free {
+      background: var(--bg-light);
+      color: var(--text);
+    }
+
+    .btn-free:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-premium {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    .btn-premium:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .guarantee {
+      text-align: center;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .social-proof {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .pricing-card.premium .social-proof {
+      border-top-color: rgba(255,255,255,0.2);
+    }
+
+    /* Comparison Table */
     .comparison-section {
       background: white;
-      border-radius: 20px;
-      padding: 3rem 2rem;
-      margin-bottom: 3rem;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      border-radius: 24px;
+      padding: 48px;
+      margin-bottom: 80px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
     }
-    
+
     .comparison-section h2 {
       text-align: center;
-      color: #667eea;
-      margin-bottom: 2rem;
-      font-size: 2rem;
+      font-size: 42px;
+      margin-bottom: 48px;
+      font-weight: 800;
     }
-    
+
     .comparison-table {
       width: 100%;
       border-collapse: collapse;
-      overflow-x: auto;
-      display: block;
     }
-    
-    .comparison-table thead {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-    }
-    
+
     .comparison-table th,
     .comparison-table td {
-      padding: 1rem;
-      text-align: center;
-      border-bottom: 1px solid #eee;
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--bg-light);
     }
-    
+
     .comparison-table th {
+      font-weight: 700;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    .comparison-table td:first-child {
       font-weight: 600;
     }
-    
-    .comparison-table tr:hover {
-      background: #f8f9ff;
+
+    .comparison-table td:not(:first-child) {
+      text-align: center;
+      font-size: 24px;
     }
-    
-    .comparison-table td:first-child {
-      text-align: left;
-      font-weight: 500;
-    }
-    
-    /* FAQ Section */
+
+    /* FAQ */
     .faq-section {
-      background: white;
-      border-radius: 20px;
-      padding: 3rem 2rem;
-      margin-bottom: 3rem;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: 0 auto 80px;
     }
-    
+
     .faq-section h2 {
       text-align: center;
-      color: #667eea;
-      margin-bottom: 2rem;
-      font-size: 2rem;
+      font-size: 42px;
+      margin-bottom: 48px;
+      font-weight: 800;
     }
-    
+
     .faq-item {
-      margin-bottom: 1.5rem;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 1.5rem;
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
-    
-    .faq-item:last-child {
-      border-bottom: none;
-    }
-    
-    .faq-question {
+
+    .faq-item summary {
       font-weight: 600;
-      color: #333;
-      margin-bottom: 0.5rem;
-      font-size: 1.1rem;
+      font-size: 18px;
+      cursor: pointer;
+      list-style: none;
     }
-    
-    .faq-answer {
-      color: #666;
+
+    .faq-item p {
+      margin-top: 16px;
+      color: var(--text-light);
       line-height: 1.7;
     }
-    
-    /* Testimonials */
-    .testimonials-section {
-      background: white;
-      border-radius: 20px;
-      padding: 3rem 2rem;
-      margin-bottom: 3rem;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-    }
-    
-    .testimonials-section h2 {
+
+    /* Urgency Banner */
+    .urgency-banner {
+      background: var(--gradient);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
       text-align: center;
-      color: #667eea;
-      margin-bottom: 2rem;
-      font-size: 2rem;
-    }
-    
-    .testimonials-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-    }
-    
-    .testimonial {
-      padding: 1.5rem;
-      background: #f8f9ff;
-      border-radius: 15px;
-      border-left: 4px solid #667eea;
-    }
-    
-    .testimonial-text {
-      font-style: italic;
-      color: #666;
-      margin-bottom: 1rem;
-    }
-    
-    .testimonial-author {
+      margin-bottom: 40px;
       font-weight: 600;
-      color: #667eea;
+      animation: pulse 2s ease-in-out infinite;
     }
-    
-    /* Money Back Guarantee */
-    .guarantee-section {
-      background: linear-gradient(135deg, #4CAF50, #45a049);
-      color: white;
-      border-radius: 20px;
-      padding: 3rem 2rem;
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.9; }
+    }
+
+    /* Trust Signals */
+    .trust-signals {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+
+    .trust-item {
       text-align: center;
-      margin-bottom: 3rem;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
     }
-    
-    .guarantee-section h2 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
+
+    .trust-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+      display: block;
     }
-    
-    .guarantee-badge {
-      font-size: 4rem;
-      margin-bottom: 1rem;
+
+    .trust-text {
+      font-size: 14px;
+      color: var(--text-light);
+      font-weight: 600;
     }
-    
-    /* Footer */
-    footer {
-      text-align: center;
-      padding: 2rem;
-      color: white;
-    }
-    
-    footer a {
-      color: white;
-      text-decoration: none;
-      margin: 0 1rem;
-    }
-    
-    footer a:hover {
-      text-decoration: underline;
-    }
-    
-    /* Animations */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
+
     /* Responsive */
     @media (max-width: 768px) {
-      .hero h1 {
-        font-size: 1.8rem;
+      h1 {
+        font-size: 40px;
       }
-      
-      .pricing-grid {
+
+      .pricing-cards {
         grid-template-columns: 1fr;
       }
-      
-      .pricing-card.featured {
+
+      .pricing-card.premium {
         transform: scale(1);
       }
-      
-      .comparison-table {
-        font-size: 0.9rem;
+
+      .pricing-card.premium:hover {
+        transform: translateY(-8px);
       }
-      
+
+      .comparison-table {
+        font-size: 14px;
+      }
+
       .comparison-table th,
       .comparison-table td {
-        padding: 0.5rem;
+        padding: 12px 8px;
       }
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <!-- Urgency Banner -->
+    <div class="urgency-banner">
+      🔥 Limited Time: Get 50% off your first month! Only 5 spots left at this price
+    </div>
 
-  <!-- Header -->
-  <header class="header">
-    <div class="header-content">
-      <a href="index.html" class="logo">🗣️ App-lisan</a>
-      <div style="display: flex; gap: 1rem; align-items: center;">
-        <a href="landing.html" class="back-link">🏠 Home</a>
-        <a href="index.html" class="back-link">← Back to App</a>
+    <!-- Header -->
+    <header>
+      <h1>Choose Your Plan</h1>
+      <p class="subtitle">Start free. Upgrade anytime for unlimited access.</p>
+      
+      <div class="billing-toggle">
+        <button class="active" onclick="setBilling('monthly')">Monthly</button>
+        <button onclick="setBilling('annual')">
+          Annual
+          <span class="save-badge">Save 33%</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Trust Signals -->
+    <div class="trust-signals">
+      <div class="trust-item">
+        <span class="trust-icon">🔒</span>
+        <p class="trust-text">Secure Payment</p>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">💯</span>
+        <p class="trust-text">7-Day Refund</p>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <p class="trust-text">Cancel Anytime</p>
       </div>
     </div>
-  </header>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <h1>🌟 Unlock Unlimited Learning</h1>
-    <p>Choose the perfect plan for your Arabic learning journey. All plans include access to lessons and pronunciation guides.</p>
-  </section>
+    <!-- Pricing Cards -->
+    <div class="pricing-cards">
+      <!-- Free Card -->
+      <div class="pricing-card free-card">
+        <div class="card-header">
+          <h2 class="plan-name">Free Forever</h2>
+          <div class="price">
+            $0
+            <span>/month</span>
+          </div>
+          <p class="plan-description">Perfect to get started</p>
+        </div>
 
-  <!-- Pricing Cards -->
-  <section class="pricing-section">
-    <div class="pricing-grid">
-      
-      <!-- Free Plan -->
-      <div class="pricing-card">
-        <div class="plan-name">Free Forever</div>
-        <div class="price">$0<span>/month</span></div>
-        <div class="price-note">Perfect to get started</div>
-        
-        <ul class="features">
-          <li><span class="check">✓</span> 5 AI translations/day</li>
-          <li><span class="check">✓</span> 100+ phrase dictionary</li>
-          <li><span class="check">✓</span> 40 learning lessons</li>
-          <li><span class="check">✓</span> Voice input/output</li>
-          <li><span class="check">✓</span> Works offline</li>
-          <li><span class="cross">✗</span> Unlimited translations</li>
-          <li><span class="cross">✗</span> Priority support</li>
-          <li><span class="cross">✗</span> Advanced features</li>
+        <ul class="features-list">
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>10 translations per day</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>100+ phrase dictionary</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>First 10 lessons</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Voice input & output</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Works offline</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Progress tracking</span>
+          </li>
+          <li class="feature-item disabled">
+            <span class="feature-icon">❌</span>
+            <span>Unlimited translations</span>
+          </li>
+          <li class="feature-item disabled">
+            <span class="feature-icon">❌</span>
+            <span>All 40 lessons</span>
+          </li>
+          <li class="feature-item disabled">
+            <span class="feature-icon">❌</span>
+            <span>AI conversation</span>
+          </li>
+          <li class="feature-item disabled">
+            <span class="feature-icon">❌</span>
+            <span>Advanced features</span>
+          </li>
         </ul>
-        
-        <a href="index.html" class="cta-button free">Start Free</a>
+
+        <button class="btn-select btn-free" onclick="location.href='index.html'">
+          Start Free
+        </button>
+        <p class="guarantee">No credit card required</p>
       </div>
-      
-      <!-- Basic Plan -->
-      <div class="pricing-card">
-        <div class="plan-name">Basic</div>
-        <div class="price">$5<span>/month</span></div>
-        <div class="price-note">Great for casual learners</div>
+
+      <!-- Premium Card -->
+      <div class="pricing-card premium">
+        <div class="popular-badge">⭐ MOST POPULAR</div>
         
-        <ul class="features">
-          <li><span class="check">✓</span> 100 AI translations/day</li>
-          <li><span class="check">✓</span> Everything in Free</li>
-          <li><span class="check">✓</span> Priority translation</li>
-          <li><span class="check">✓</span> No ads</li>
-          <li><span class="check">✓</span> Email support</li>
-          <li><span class="cross">✗</span> Unlimited translations</li>
-          <li><span class="cross">✗</span> Custom lessons</li>
-          <li><span class="cross">✗</span> API access</li>
+        <div class="card-header">
+          <h2 class="plan-name">Premium</h2>
+          <div class="price" id="premiumPrice">
+            $7.99
+            <span>/month</span>
+          </div>
+          <p class="annual-price" id="annualNote" style="display: none;">
+            Billed $63.99 annually
+          </p>
+          <p class="plan-description">For serious Arabic learners</p>
+        </div>
+
+        <ul class="features-list">
+          <li class="feature-item highlight">
+            <span class="feature-icon">✅</span>
+            <span><strong>UNLIMITED translations</strong></span>
+          </li>
+          <li class="feature-item highlight">
+            <span class="feature-icon">✅</span>
+            <span><strong>ALL 40 lessons unlocked</strong></span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Everything in Free, plus:</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>AI conversation practice</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Pronunciation feedback</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Custom lesson plans</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Grammar correction</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Download flashcards</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Priority support</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>Ad-free experience</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✅</span>
+            <span>API access</span>
+          </li>
         </ul>
+
+        <button class="btn-select btn-premium" id="premiumBtn" onclick="upgradePremium()">
+          Get Premium
+        </button>
+        <p class="guarantee">💯 7-day money-back guarantee</p>
         
-        <button class="cta-button secondary" onclick="joinWaitlist('basic')">Join Waitlist 🔔</button>
+        <div class="social-proof">
+          ⭐⭐⭐⭐⭐ <strong>4.8/5</strong> from 250+ learners
+        </div>
       </div>
-      
-      <!-- Premium Plan (Featured) -->
-      <div class="pricing-card featured">
-        <div class="badge">⭐ MOST POPULAR</div>
-        <div class="plan-name">Premium</div>
-        <div class="price">$12<span>/month</span></div>
-        <div class="price-note">For serious learners</div>
-        
-        <ul class="features">
-          <li><span class="check">✓</span> Unlimited AI translations</li>
-          <li><span class="check">✓</span> Everything in Basic</li>
-          <li><span class="check">✓</span> AI conversation practice</li>
-          <li><span class="check">✓</span> Pronunciation feedback</li>
-          <li><span class="check">✓</span> Custom lesson plans</li>
-          <li><span class="check">✓</span> Grammar correction</li>
-          <li><span class="check">✓</span> Priority support</li>
-          <li><span class="check">✓</span> API access</li>
-        </ul>
-        
-        <button class="cta-button primary" onclick="joinWaitlist('premium')">Join Waitlist 🔔</button>
-      </div>
-      
     </div>
-  </section>
 
-  <!-- Feature Comparison Table -->
-  <section class="pricing-section">
+    <!-- Comparison Table -->
     <div class="comparison-section">
-      <h2>📊 Detailed Feature Comparison</h2>
+      <h2>Feature Comparison</h2>
       
       <table class="comparison-table">
         <thead>
           <tr>
-            <th>Feature</th>
+            <th style="text-align: left;">Feature</th>
             <th>Free</th>
-            <th>Basic</th>
             <th>Premium</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>AI Translations per Day</td>
-            <td>5</td>
-            <td>100</td>
-            <td>Unlimited</td>
+            <td>Translations per day</td>
+            <td>10</td>
+            <td>∞</td>
           </tr>
           <tr>
-            <td>Phrase Dictionary</td>
-            <td>✓ 100+</td>
-            <td>✓ 100+</td>
-            <td>✓ 500+</td>
+            <td>Lessons</td>
+            <td>10</td>
+            <td>40</td>
           </tr>
           <tr>
-            <td>Learning Lessons</td>
-            <td>✓ 40</td>
-            <td>✓ 40</td>
-            <td>✓ 100+</td>
-          </tr>
-          <tr>
-            <td>Voice Input/Output</td>
-            <td>✓</td>
+            <td>Phrase dictionary</td>
             <td>✓</td>
             <td>✓</td>
           </tr>
           <tr>
-            <td>Offline Access</td>
-            <td>✓</td>
-            <td>✓</td>
-            <td>✓</td>
-          </tr>
-          <tr>
-            <td>Priority Translation Speed</td>
-            <td>✗</td>
+            <td>Voice input/output</td>
             <td>✓</td>
             <td>✓</td>
           </tr>
           <tr>
-            <td>Ad-Free Experience</td>
-            <td>✗</td>
+            <td>Works offline</td>
             <td>✓</td>
             <td>✓</td>
           </tr>
           <tr>
-            <td>AI Conversation Practice</td>
-            <td>✗</td>
-            <td>✗</td>
+            <td>AI conversation practice</td>
+            <td>—</td>
             <td>✓</td>
           </tr>
           <tr>
-            <td>Pronunciation Feedback</td>
-            <td>✗</td>
-            <td>✗</td>
+            <td>Pronunciation feedback</td>
+            <td>—</td>
             <td>✓</td>
           </tr>
           <tr>
-            <td>Grammar Correction</td>
-            <td>✗</td>
-            <td>✗</td>
+            <td>Custom lesson plans</td>
+            <td>—</td>
             <td>✓</td>
           </tr>
           <tr>
-            <td>Custom Lesson Plans</td>
-            <td>✗</td>
-            <td>✗</td>
+            <td>Grammar correction</td>
+            <td>—</td>
             <td>✓</td>
           </tr>
           <tr>
-            <td>API Access</td>
-            <td>✗</td>
-            <td>✗</td>
+            <td>Download flashcards</td>
+            <td>—</td>
             <td>✓</td>
           </tr>
           <tr>
-            <td>Support</td>
-            <td>Community</td>
-            <td>Email</td>
-            <td>Priority</td>
+            <td>Priority support</td>
+            <td>—</td>
+            <td>✓</td>
+          </tr>
+          <tr>
+            <td>Ad-free</td>
+            <td>—</td>
+            <td>✓</td>
+          </tr>
+          <tr>
+            <td>API access</td>
+            <td>—</td>
+            <td>✓</td>
           </tr>
         </tbody>
       </table>
     </div>
-  </section>
 
-  <!-- Testimonials -->
-  <section class="pricing-section">
-    <div class="testimonials-section">
-      <h2>💬 What Our Users Say</h2>
-      
-      <div class="testimonials-grid">
-        <div class="testimonial">
-          <div class="testimonial-text">
-            "App-lisan helped me learn basic Arabic in just 2 weeks. The voice recognition is incredibly accurate!"
-          </div>
-          <div class="testimonial-author">— Sarah M., USA</div>
-        </div>
-        
-        <div class="testimonial">
-          <div class="testimonial-text">
-            "As a teacher, I recommend App-lisan to all my students. The progressive lessons are perfectly structured."
-          </div>
-          <div class="testimonial-author">— Ahmed K., Egypt</div>
-        </div>
-        
-        <div class="testimonial">
-          <div class="testimonial-text">
-            "The premium plan is worth every penny. Unlimited translations make learning so much faster!"
-          </div>
-          <div class="testimonial-author">— Maria L., Spain</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Money Back Guarantee -->
-  <section class="pricing-section">
-    <div class="guarantee-section">
-      <div class="guarantee-badge">🛡️</div>
-      <h2>30-Day Money-Back Guarantee</h2>
-      <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
-        Not satisfied? Get a full refund within 30 days, no questions asked. We're confident you'll love App-lisan!
-      </p>
-    </div>
-  </section>
-
-  <!-- FAQ Section -->
-  <section class="pricing-section">
+    <!-- FAQ -->
     <div class="faq-section">
-      <h2>❓ Frequently Asked Questions</h2>
+      <h2>Frequently Asked Questions</h2>
       
-      <div class="faq-item">
-        <div class="faq-question">Can I switch plans anytime?</div>
-        <div class="faq-answer">Yes! You can upgrade, downgrade, or cancel anytime. Changes take effect immediately.</div>
-      </div>
-      
-      <div class="faq-item">
-        <div class="faq-question">What payment methods do you accept?</div>
-        <div class="faq-answer">We accept all major credit cards, PayPal, and Apple Pay. All payments are secure and encrypted.</div>
-      </div>
-      
-      <div class="faq-item">
-        <div class="faq-question">Do I need to install anything?</div>
-        <div class="faq-answer">No! App-lisan works directly in your browser and can be installed as a PWA on your phone for offline access.</div>
-      </div>
-      
-      <div class="faq-item">
-        <div class="faq-question">How accurate are the AI translations?</div>
-        <div class="faq-answer">Our AI translations use Claude AI and Google Translate APIs with 95%+ accuracy. We constantly improve our algorithms based on user feedback.</div>
-      </div>
-      
-      <div class="faq-item">
-        <div class="faq-question">Can I use it offline?</div>
-        <div class="faq-answer">Yes! The dictionary (100+ phrases) and lessons work completely offline. AI translations require internet connection.</div>
-      </div>
-      
-      <div class="faq-item">
-        <div class="faq-question">Is there a family plan?</div>
-        <div class="faq-answer">Not yet, but we're working on it! Contact us at support@app-lisan.com to express your interest.</div>
-      </div>
-      
-      <div class="faq-item">
-        <div class="faq-question">What about student discounts?</div>
-        <div class="faq-answer">Yes! Students get 50% off with a valid student email. Contact support@app-lisan.com with your .edu email.</div>
-      </div>
-      
-      <div class="faq-item">
-        <div class="faq-question">How do I cancel?</div>
-        <div class="faq-answer">Cancel anytime from your account settings. No cancellation fees, and you keep access until the end of your billing period.</div>
-      </div>
-    </div>
-  </section>
+      <details class="faq-item" open>
+        <summary>Can I switch plans later?</summary>
+        <p>Yes! Upgrade or downgrade anytime. No penalties or fees. If you upgrade, you'll get immediate access to all Premium features.</p>
+      </details>
 
-  <!-- Footer -->
-  <footer>
-    <p>
-      <a href="index.html">App</a> |
-      <a href="landing.html">Home</a> |
-      <a href="mailto:support@app-lisan.com">Contact</a> |
-      <a href="privacy-policy.html">Privacy</a> |
-      <a href="terms.html">Terms</a>
-    </p>
-    <p style="margin-top: 1rem;">Made with ❤️ for Arabic learners worldwide</p>
-    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">© 2024 App-lisan. All rights reserved.</p>
-  </footer>
+      <details class="faq-item">
+        <summary>What happens if I cancel Premium?</summary>
+        <p>You'll keep access until your billing period ends, then automatically switch to the Free tier. Your progress is never lost!</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Do you offer refunds?</summary>
+        <p>Absolutely! 100% refund within 7 days, no questions asked. Just email us at support@app-lisan.com</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Is the annual plan worth it?</summary>
+        <p>Yes! You save 33% compared to monthly billing. That's like getting 4 months free!</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Can I use Premium on multiple devices?</summary>
+        <p>Yes! Your Premium subscription works on all your devices - phone, tablet, computer. Just log in with the same account.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>What payment methods do you accept?</summary>
+        <p>We accept all major credit cards (Visa, MasterCard, Amex), PayPal, and Apple Pay through our secure payment processor.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Is my payment information secure?</summary>
+        <p>Yes! We use LemonSqueezy, a PCI-compliant payment processor. We never see or store your card details.</p>
+      </details>
+    </div>
+
+    <div style="text-align: center; margin: 60px 0;">
+      <a href="index.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+        ← Back to App
+      </a>
+    </div>
+  </div>
 
   <script>
-    // Waitlist functionality
-    function joinWaitlist(plan) {
-      const email = prompt(`Join the ${plan} waitlist!\n\nEnter your email:`);
-      
-      if (!email) return;
-      
-      // Validate email
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        alert('Please enter a valid email address');
-        return;
-      }
-      
-      // Store in localStorage
-      localStorage.setItem('waitlist_email', email);
-      localStorage.setItem('waitlist_plan', plan);
-      localStorage.setItem('waitlist_date', new Date().toISOString());
-      
-      // Show confirmation
-      alert(`✅ Thank you!\n\nYou're on the ${plan} waitlist.\n\nWe'll notify you at ${email} when we launch!\n\n🎁 Early bird discount: 50% off first month!`);
-      
-      // Track in console (later: send to backend)
-      console.log('Waitlist signup:', { email, plan, date: new Date() });
-      
-      // TODO: Send to your email collection service (Resend)
-      // await sendToResend(email, plan);
-    }
-    
-    // Track page view
-    console.log('Premium page loaded');
-    
-    // Track time spent on page
-    let timeOnPage = 0;
-    setInterval(() => {
-      timeOnPage += 1;
-      if (timeOnPage === 30) {
-        console.log('User spent 30 seconds on premium page');
-      }
-    }, 1000);
-    
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth' });
-        }
-      });
-    });
-  </script>
+    let billingCycle = 'monthly';
 
+    function setBilling(cycle) {
+      billingCycle = cycle;
+      
+      // Update button states
+      document.querySelectorAll('.billing-toggle button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // Update price display
+      const priceEl = document.getElementById('premiumPrice');
+      const annualNote = document.getElementById('annualNote');
+      const premiumBtn = document.getElementById('premiumBtn');
+      
+      if (cycle === 'monthly') {
+        priceEl.innerHTML = '$7.99<span>/month</span>';
+        annualNote.style.display = 'none';
+        premiumBtn.textContent = 'Get Premium Monthly';
+      } else {
+        priceEl.innerHTML = '$5.33<span>/month</span>';
+        annualNote.style.display = 'block';
+        premiumBtn.textContent = 'Get Premium Annual';
+      }
+    }
+
+    function upgradePremium() {
+      // In production, redirect to LemonSqueezy checkout
+      if (billingCycle === 'monthly') {
+        // window.location.href = 'https://yourstore.lemonsqueezy.com/checkout/buy/MONTHLY_VARIANT_ID';
+        alert('Redirecting to secure checkout for Monthly plan ($7.99/month)');
+      } else {
+        // window.location.href = 'https://yourstore.lemonsqueezy.com/checkout/buy/ANNUAL_VARIANT_ID';
+        alert('Redirecting to secure checkout for Annual plan ($63.99/year)');
+      }
+    }
+  </script>
 </body>
 </html>

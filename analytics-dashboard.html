@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics Dashboard - App-lisan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #667eea;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .dashboard {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .dashboard-header {
+      background: white;
+      padding: 24px 32px;
+      border-radius: 16px;
+      margin-bottom: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dashboard-title {
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .date-range {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .date-range select {
+      padding: 8px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+    }
+
+    .stat-card.success::before {
+      background: var(--success);
+    }
+
+    .stat-card.warning::before {
+      background: var(--warning);
+    }
+
+    .stat-card.danger::before {
+      background: var(--danger);
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-icon {
+      font-size: 24px;
+      opacity: 0.6;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+
+    .stat-change {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-change.positive {
+      color: var(--success);
+    }
+
+    .stat-change.negative {
+      color: var(--danger);
+    }
+
+    /* Charts Section */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .chart-card {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .chart-header {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chart-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .chart-filter {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chart-filter button {
+      padding: 6px 12px;
+      border: 2px solid var(--border);
+      background: white;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chart-filter button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .chart-placeholder {
+      height: 300px;
+      background: var(--bg);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-light);
+      font-size: 14px;
+    }
+
+    /* Tables */
+    .table-card {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 32px;
+    }
+
+    .table-header {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .search-box {
+      padding: 8px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      width: 250px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: var(--bg);
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-weight: 700;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-light);
+    }
+
+    td {
+      font-size: 14px;
+    }
+
+    tbody tr:hover {
+      background: var(--bg);
+    }
+
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .status-active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-premium {
+      background: #ddd6fe;
+      color: #5b21b6;
+    }
+
+    /* Funnel Visualization */
+    .funnel-card {
+      background: white;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 32px;
+    }
+
+    .funnel-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 32px;
+    }
+
+    .funnel-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .funnel-step {
+      position: relative;
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .funnel-step-info {
+      flex: 1;
+    }
+
+    .funnel-step-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .funnel-step-desc {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    .funnel-step-stats {
+      text-align: right;
+    }
+
+    .funnel-step-number {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .funnel-step-rate {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    .funnel-bar {
+      height: 8px;
+      background: var(--primary);
+      border-radius: 4px;
+      margin-top: 12px;
+    }
+
+    /* Alerts */
+    .alerts-section {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 32px;
+    }
+
+    .alert {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      border-left: 4px solid;
+    }
+
+    .alert-success {
+      background: #d1fae5;
+      border-color: var(--success);
+      color: #065f46;
+    }
+
+    .alert-warning {
+      background: #fef3c7;
+      border-color: var(--warning);
+      color: #92400e;
+    }
+
+    .alert-danger {
+      background: #fee2e2;
+      border-color: var(--danger);
+      color: #991b1b;
+    }
+
+    .alert-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .alert-content strong {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .alert-content span {
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .search-box {
+        width: 100%;
+      }
+
+      .table-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div>
+        <h1 class="dashboard-title">📊 App-lisan Analytics</h1>
+        <p style="color: var(--text-light); margin-top: 4px;">Real-time insights into your Arabic learning app</p>
+      </div>
+      <div class="date-range">
+        <span style="font-weight: 600; color: var(--text-light);">Period:</span>
+        <select>
+          <option>Last 7 days</option>
+          <option selected>Last 30 days</option>
+          <option>Last 90 days</option>
+          <option>All time</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Total Users</span>
+          <span class="stat-icon">👥</span>
+        </div>
+        <div class="stat-value">5,234</div>
+        <div class="stat-change positive">
+          <span>↑ 12.5%</span>
+          <span style="color: var(--text-light);">vs last month</span>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-header">
+          <span class="stat-label">Premium Users</span>
+          <span class="stat-icon">⭐</span>
+        </div>
+        <div class="stat-value">347</div>
+        <div class="stat-change positive">
+          <span>↑ 23.8%</span>
+          <span style="color: var(--text-light);">vs last month</span>
+        </div>
+      </div>
+
+      <div class="stat-card warning">
+        <div class="stat-header">
+          <span class="stat-label">Conversion Rate</span>
+          <span class="stat-icon">💰</span>
+        </div>
+        <div class="stat-value">6.6%</div>
+        <div class="stat-change positive">
+          <span>↑ 1.2%</span>
+          <span style="color: var(--text-light);">vs last month</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">MRR</span>
+          <span class="stat-icon">💵</span>
+        </div>
+        <div class="stat-value">$2,773</div>
+        <div class="stat-change positive">
+          <span>↑ $412</span>
+          <span style="color: var(--text-light);">vs last month</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Daily Active</span>
+          <span class="stat-icon">📱</span>
+        </div>
+        <div class="stat-value">1,247</div>
+        <div class="stat-change positive">
+          <span>↑ 8.3%</span>
+          <span style="color: var(--text-light);">vs last week</span>
+        </div>
+      </div>
+
+      <div class="stat-card danger">
+        <div class="stat-header">
+          <span class="stat-label">Churn Rate</span>
+          <span class="stat-icon">📉</span>
+        </div>
+        <div class="stat-value">3.2%</div>
+        <div class="stat-change negative">
+          <span>↓ 0.8%</span>
+          <span style="color: var(--text-light);">Better!</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Translations Today</span>
+          <span class="stat-icon">🔄</span>
+        </div>
+        <div class="stat-value">8,472</div>
+        <div class="stat-change positive">
+          <span>↑ 15.4%</span>
+          <span style="color: var(--text-light);">vs yesterday</span>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-header">
+          <span class="stat-label">Lessons Completed</span>
+          <span class="stat-icon">✅</span>
+        </div>
+        <div class="stat-value">2,134</div>
+        <div class="stat-change positive">
+          <span>↑ 9.2%</span>
+          <span style="color: var(--text-light);">vs yesterday</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts/Insights -->
+    <div class="alerts-section">
+      <h3 style="margin-bottom: 16px; font-weight: 700;">🔔 Today's Insights</h3>
+      
+      <div class="alert alert-success">
+        <span class="alert-icon">🎉</span>
+        <div class="alert-content">
+          <strong>Premium conversion up!</strong>
+          <span>34 users upgraded to Premium today (23% higher than average)</span>
+        </div>
+      </div>
+
+      <div class="alert alert-warning">
+        <span class="alert-icon">⚠️</span>
+        <div class="alert-content">
+          <strong>Churn spike detected</strong>
+          <span>5 Premium users cancelled this week. Most common reason: "Not using enough"</span>
+        </div>
+      </div>
+
+      <div class="alert alert-success">
+        <span class="alert-icon">🚀</span>
+        <div class="alert-content">
+          <strong>Viral growth!</strong>
+          <span>127 users referred friends this week. Referral program is working!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversion Funnel -->
+    <div class="funnel-card">
+      <h3 class="funnel-title">Conversion Funnel (Last 30 Days)</h3>
+      
+      <div class="funnel-steps">
+        <div class="funnel-step">
+          <div class="funnel-step-info">
+            <div class="funnel-step-name">1. Landing Page Visit</div>
+            <div class="funnel-step-desc">Users who visited the landing page</div>
+          </div>
+          <div class="funnel-step-stats">
+            <div class="funnel-step-number">12,847</div>
+            <div class="funnel-step-rate">100%</div>
+          </div>
+          <div class="funnel-bar" style="width: 100%;"></div>
+        </div>
+
+        <div class="funnel-step">
+          <div class="funnel-step-info">
+            <div class="funnel-step-name">2. Started Using App</div>
+            <div class="funnel-step-desc">Clicked "Start Learning Free"</div>
+          </div>
+          <div class="funnel-step-stats">
+            <div class="funnel-step-number">8,234</div>
+            <div class="funnel-step-rate">64.1% conversion</div>
+          </div>
+          <div class="funnel-bar" style="width: 64%;"></div>
+        </div>
+
+        <div class="funnel-step">
+          <div class="funnel-step-info">
+            <div class="funnel-step-name">3. First Translation</div>
+            <div class="funnel-step-desc">Performed at least 1 translation</div>
+          </div>
+          <div class="funnel-step-stats">
+            <div class="funnel-step-number">6,892</div>
+            <div class="funnel-step-rate">53.7% conversion</div>
+          </div>
+          <div class="funnel-bar" style="width: 54%;"></div>
+        </div>
+
+        <div class="funnel-step">
+          <div class="funnel-step-info">
+            <div class="funnel-step-name">4. Completed Lesson 1</div>
+            <div class="funnel-step-desc">Finished first lesson</div>
+          </div>
+          <div class="funnel-step-stats">
+            <div class="funnel-step-number">4,234</div>
+            <div class="funnel-step-rate">33.0% conversion</div>
+          </div>
+          <div class="funnel-bar" style="width: 33%;"></div>
+        </div>
+
+        <div class="funnel-step">
+          <div class="funnel-step-info">
+            <div class="funnel-step-name">5. Hit Free Limit</div>
+            <div class="funnel-step-desc">Used 10 translations (showed upgrade modal)</div>
+          </div>
+          <div class="funnel-step-stats">
+            <div class="funnel-step-number">2,847</div>
+            <div class="funnel-step-rate">22.2% conversion</div>
+          </div>
+          <div class="funnel-bar" style="width: 22%;"></div>
+        </div>
+
+        <div class="funnel-step">
+          <div class="funnel-step-info">
+            <div class="funnel-step-name">6. Upgraded to Premium</div>
+            <div class="funnel-step-desc">Became paying customer</div>
+          </div>
+          <div class="funnel-step-stats">
+            <div class="funnel-step-number">847</div>
+            <div class="funnel-step-rate">6.6% conversion</div>
+          </div>
+          <div class="funnel-bar" style="width: 7%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Revenue Trend</h3>
+          <div class="chart-filter">
+            <button class="active">Daily</button>
+            <button>Weekly</button>
+            <button>Monthly</button>
+          </div>
+        </div>
+        <div class="chart-placeholder">
+          📈 Revenue chart (integrate Chart.js or similar)
+          <br><br>
+          Shows: MRR growth over time
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">User Growth</h3>
+          <div class="chart-filter">
+            <button class="active">Daily</button>
+            <button>Weekly</button>
+            <button>Monthly</button>
+          </div>
+        </div>
+        <div class="chart-placeholder">
+          📊 User growth chart
+          <br><br>
+          Shows: Total users over time (Free vs Premium)
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Traffic Sources</h3>
+        </div>
+        <div class="chart-placeholder">
+          🥧 Pie chart
+          <br><br>
+          Shows: Where users come from (Organic, Product Hunt, Twitter, etc)
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Feature Usage</h3>
+        </div>
+        <div class="chart-placeholder">
+          📊 Bar chart
+          <br><br>
+          Shows: Most used features (Translator, Lessons, etc)
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Content Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3 class="table-title">Top Performing Content</h3>
+        <input type="text" class="search-box" placeholder="Search..." />
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th>Views</th>
+            <th>Signups</th>
+            <th>Conversions</th>
+            <th>Revenue</th>
+            <th>ROI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Landing Page</strong></td>
+            <td>12,847</td>
+            <td>8,234</td>
+            <td>847</td>
+            <td>$6,776</td>
+            <td>🔥 High</td>
+          </tr>
+          <tr>
+            <td><strong>Premium Page</strong></td>
+            <td>3,247</td>
+            <td>-</td>
+            <td>634</td>
+            <td>$5,072</td>
+            <td>🔥 High</td>
+          </tr>
+          <tr>
+            <td><strong>App - Translator</strong></td>
+            <td>18,234</td>
+            <td>-</td>
+            <td>234</td>
+            <td>$1,872</td>
+            <td>✅ Good</td>
+          </tr>
+          <tr>
+            <td><strong>App - Lessons</strong></td>
+            <td>14,892</td>
+            <td>-</td>
+            <td>412</td>
+            <td>$3,296</td>
+            <td>✅ Good</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Recent Users Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3 class="table-title">Recent Users</h3>
+        <input type="text" class="search-box" placeholder="Search users..." />
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Country</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th>Translations</th>
+            <th>Lessons</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>user_5234</strong></td>
+            <td>🇺🇸 USA</td>
+            <td><span class="status-badge status-premium">Premium</span></td>
+            <td>2 days ago</td>
+            <td>87</td>
+            <td>8/40</td>
+          </tr>
+          <tr>
+            <td><strong>user_5233</strong></td>
+            <td>🇬🇧 UK</td>
+            <td><span class="status-badge status-active">Free</span></td>
+            <td>3 days ago</td>
+            <td>23</td>
+            <td>3/10</td>
+          </tr>
+          <tr>
+            <td><strong>user_5232</strong></td>
+            <td>🇨🇦 Canada</td>
+            <td><span class="status-badge status-premium">Premium</span></td>
+            <td>5 days ago</td>
+            <td>134</td>
+            <td>15/40</td>
+          </tr>
+          <tr>
+            <td><strong>user_5231</strong></td>
+            <td>🇦🇺 Australia</td>
+            <td><span class="status-badge status-inactive">Inactive</span></td>
+            <td>7 days ago</td>
+            <td>5</td>
+            <td>1/10</td>
+          </tr>
+          <tr>
+            <td><strong>user_5230</strong></td>
+            <td>🇩🇪 Germany</td>
+            <td><span class="status-badge status-active">Free</span></td>
+            <td>8 days ago</td>
+            <td>18</td>
+            <td>4/10</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // In production, this would fetch real data from your backend
+    // For now, it's a static template showing what data you should track
+    
+    console.log('Analytics Dashboard Loaded');
+    console.log('TODO: Integrate with your backend API');
+    console.log('TODO: Add Chart.js for visualizations');
+    console.log('TODO: Add real-time WebSocket updates');
+  </script>
+</body>
+</html>
