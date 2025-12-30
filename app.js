@@ -2,6 +2,9 @@
 ═══════════════════════════════════════════════════════════════
   APP.JS - MAIN APPLICATION CONTROLLER
   
+  ✅ UPDATED: Added proper voice features initialization
+  ✅ UPDATED: Helper function to get current lesson
+  
   NARRATIVE:
   This is the orchestrator - it coordinates all other modules
   and handles:
@@ -67,6 +70,14 @@ function loadLesson() {
   updateButtons();
   
   console.log(`Loaded lesson ${currentLesson + 1}/${lessons.length}`);
+}
+
+/**
+ * ✅ NEW: Helper function to get current lesson
+ * Used by voice.js for speakLesson()
+ */
+function getLesson(index) {
+  return lessons[index];
 }
 
 /**
@@ -354,8 +365,12 @@ function initializeApp() {
   // Load first lesson
   loadLesson();
   
-  // Initialize voice features
-  initVoiceFeatures();
+  // ✅ UPDATED: Initialize voice features properly
+  if (typeof initVoiceFeatures === 'function') {
+    initVoiceFeatures();
+  } else {
+    console.warn('⚠️ Voice features not available (voice.js not loaded?)');
+  }
   
   // Setup event listeners
   const input = document.getElementById('input');
@@ -372,7 +387,9 @@ function initializeApp() {
   }
   
   // Initialize character counter
-  updateCharCount();
+  if (typeof updateCharCount === 'function') {
+    updateCharCount();
+  }
   
   console.log('✅ App-lisan Ready!');
   console.log(`📚 ${lessons.length} lessons loaded`);
@@ -426,7 +443,8 @@ if (window.location.hostname === 'localhost') {
     getPhraseCount: () => Object.keys(phrases).length,
     getLessonCount: () => lessons.length,
     getProgress: () => userProgress,
-    testVoice: () => speakText('مرحبا', 'ar-SA')
+    testVoice: () => speakText('مرحبا', 'ar-SA'),
+    testLesson: () => speakLesson()
   };
   
   console.log('🔧 Debug tools available: window.debug');
@@ -436,18 +454,24 @@ if (window.location.hostname === 'localhost') {
 ═══════════════════════════════════════════════════════════════
   END OF APP.JS
   
+  CHANGES IN THIS VERSION:
+  ✅ Added getLesson() helper function for voice.js
+  ✅ Improved initVoiceFeatures() call with error handling
+  ✅ Added testLesson() to debug tools
+  
   APPLICATION FLOW:
   
   1. Page loads → window.onload triggers
   2. initializeApp() runs:
      - Load saved progress
      - Initialize first lesson
-     - Setup voice features
+     - ✅ Setup voice features (calls initVoiceFeatures)
      - Register service worker
   3. User interactions trigger functions:
      - Lesson navigation → nextLesson/previousLesson
      - Translation → translateText (from translate.js)
      - Voice → toggleVoiceInput (from voice.js)
+     - ✅ Listen button → speakLesson() (fixed in voice.js)
   4. Progress auto-saves to localStorage
   5. Before page closes → saveProgress()
   
@@ -459,31 +483,14 @@ if (window.location.hostname === 'localhost') {
   ✅ Local storage for progress
   ✅ Error handling
   ✅ Accessibility features
+  ✅ Voice features initialization
+  ✅ Audio button support
   
-  ENHANCEMENT ROADMAP:
-  
-  PHASE 1 - User Experience:
-  - Add loading animations
-  - Implement toast notifications
-  - Add confetti on lesson completion
-  - Dark mode toggle
-  
-  PHASE 2 - Learning Features:
-  - Quiz mode after every 5 lessons
-  - Flashcard system
-  - Spaced repetition algorithm
-  - Progress charts/graphs
-  
-  PHASE 3 - Social Features:
-  - Share progress on social media
-  - Leaderboards (if backend added)
-  - Community phrases
-  - User-generated content
-  
-  PHASE 4 - Advanced:
-  - Offline AI translation (TensorFlow.js)
-  - Custom voice training
-  - Pronunciation feedback
-  - AR features for object translation
+  AUDIO FEATURES ADDED:
+  ✅ Listen button in lessons works properly
+  ✅ Listen button in translations (from translate.js)
+  ✅ Proper Arabic voice selection
+  ✅ Visual feedback during speech
+  ✅ Error handling for unsupported browsers
 ═══════════════════════════════════════════════════════════════
 */

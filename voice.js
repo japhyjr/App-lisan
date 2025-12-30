@@ -2,10 +2,13 @@
 ═══════════════════════════════════════════════════════════════
   VOICE.JS - VOICE RECOGNITION & TEXT-TO-SPEECH
   
-  NARRATIVE:
-  This module handles all voice-related features:
+  ✅ UPDATED: Fixed speakLesson() for proper Arabic pronunciation
+  ✅ UPDATED: Added voice loading system
+  ✅ UPDATED: Better error handling and user feedback
+  
+  FEATURES:
   1. Speech Recognition (Speech-to-Text)
-  2. Text-to-Speech (TTS)
+  2. Text-to-Speech (TTS) with proper Arabic voices
   3. Language detection for voice input
   4. Browser compatibility checking
   
@@ -18,12 +21,6 @@
   ✅ Edge - Full support
   ⚠️ Safari - Limited support
   ❌ Firefox - No support for speech recognition
-  
-  LIMITATIONS:
-  - Requires internet connection (browser APIs call cloud services)
-  - Needs microphone permission
-  - Arabic recognition accuracy varies by browser
-  - Some browsers don't support Arabic TTS voices
 ═══════════════════════════════════════════════════════════════
 */
 
@@ -31,6 +28,7 @@
 let recognition = null;        // Speech recognition instance
 let isRecording = false;       // Recording state
 let currentLanguage = 'ar-SA'; // Default to Arabic
+let voicesLoaded = false;      // Track if voices are ready
 
 // ========== INITIALIZATION ==========
 
@@ -270,13 +268,70 @@ function speakText(text, lang = 'ar-SA') {
 }
 
 /**
- * Speak current lesson
+ * ✅ UPDATED: Speak current lesson with proper Arabic voice
  */
 function speakLesson() {
-  const lesson = getLesson(currentLesson);
-  if (lesson) {
-    speakText(lesson.ar, 'ar-SA');
+  const lesson = lessons[currentLesson];
+  
+  if (!lesson) {
+    console.error('No lesson to speak');
+    return;
   }
+  
+  // Check browser support
+  if (!('speechSynthesis' in window)) {
+    alert('🔇 Text-to-speech not supported in this browser. Please use Chrome or Edge.');
+    return;
+  }
+  
+  // Stop any ongoing speech
+  window.speechSynthesis.cancel();
+  
+  // Create utterance for Arabic
+  const utterance = new SpeechSynthesisUtterance(lesson.ar);
+  utterance.lang = 'ar-SA';
+  utterance.rate = 0.8; // Slower for learning
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
+  
+  // Try to find Arabic voice
+  const voices = window.speechSynthesis.getVoices();
+  const arabicVoice = voices.find(voice => 
+    voice.lang.startsWith('ar') || 
+    voice.lang === 'ar-SA'
+  );
+  
+  if (arabicVoice) {
+    utterance.voice = arabicVoice;
+    console.log('🔊 Using Arabic voice:', arabicVoice.name);
+  } else {
+    console.warn('⚠️ No Arabic voice found, using default');
+  }
+  
+  // Visual feedback on button
+  const speakBtn = document.querySelector('.btn-speak');
+  if (speakBtn) {
+    const originalHTML = speakBtn.innerHTML;
+    speakBtn.innerHTML = '⏸️ Speaking...';
+    speakBtn.disabled = true;
+    
+    utterance.onend = () => {
+      speakBtn.innerHTML = originalHTML;
+      speakBtn.disabled = false;
+      console.log('🔊 Finished speaking');
+    };
+    
+    utterance.onerror = (event) => {
+      console.error('Speech error:', event);
+      speakBtn.innerHTML = originalHTML;
+      speakBtn.disabled = false;
+      alert('🔇 Could not play audio. Your device may not have Arabic voice support.');
+    };
+  }
+  
+  // Speak
+  window.speechSynthesis.speak(utterance);
+  console.log('🔊 Speaking lesson:', lesson.ar);
 }
 
 /**
@@ -348,6 +403,56 @@ function showVoiceSupportInfo() {
   }
 }
 
+// ========== ✅ NEW: VOICE LOADING SYSTEM ==========
+
+/**
+ * Ensure voices are loaded before using them
+ * Voices might not be ready immediately on page load
+ */
+function ensureVoicesLoaded(callback) {
+  if (!('speechSynthesis' in window)) {
+    console.warn('Speech synthesis not supported');
+    return;
+  }
+  
+  let voices = window.speechSynthesis.getVoices();
+  
+  if (voices.length > 0) {
+    voicesLoaded = true;
+    callback();
+  } else {
+    // Voices not loaded yet, wait for them
+    window.speechSynthesis.onvoiceschanged = () => {
+      voices = window.speechSynthesis.getVoices();
+      voicesLoaded = true;
+      console.log('🔊 Voices loaded:', voices.length);
+      
+      // Log available Arabic voices
+      const arabicVoices = voices.filter(v => v.lang.startsWith('ar'));
+      if (arabicVoices.length > 0) {
+        console.log('✅ Arabic voices available:', arabicVoices.map(v => v.name).join(', '));
+      } else {
+        console.warn('⚠️ No Arabic voices found on this device');
+      }
+      
+      callback();
+    };
+    
+    // Force load voices (some browsers need this)
+    window.speechSynthesis.getVoices();
+  }
+}
+
+/**
+ * ✅ NEW: Stop all speech (cleanup function)
+ */
+function stopAllSpeech() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    console.log('🔇 All speech stopped');
+  }
+}
+
 // ========== INITIALIZATION ON LOAD ==========
 
 /**
@@ -357,68 +462,67 @@ function initVoiceFeatures() {
   // Check support and show info
   showVoiceSupportInfo();
   
-  // Load voices (they might not be ready immediately)
-  if ('speechSynthesis' in window) {
-    // Voices might load asynchronously
-    window.speechSynthesis.onvoiceschanged = () => {
-      console.log('Voices loaded:', window.speechSynthesis.getVoices().length);
-      showVoiceSupportInfo();
-    };
-  }
+  // Load voices with callback
+  ensureVoicesLoaded(() => {
+    console.log('✅ Audio system ready');
+    showVoiceSupportInfo(); // Update info after voices load
+  });
   
-  // Initialize recognition (lazy - only when first used)
   console.log('Voice features initialized');
 }
 
+// ========== PAGE LOAD EVENTS ==========
+
+/**
+ * Initialize when DOM is ready
+ */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    ensureVoicesLoaded(() => {
+      console.log('✅ Audio system ready (DOMContentLoaded)');
+    });
+  });
+} else {
+  ensureVoicesLoaded(() => {
+    console.log('✅ Audio system ready (immediate)');
+  });
+}
+
+/**
+ * Stop speech when page unloads
+ */
+window.addEventListener('beforeunload', stopAllSpeech);
+
+console.log('✅ Voice.js loaded with audio fixes');
+
 /*
 ═══════════════════════════════════════════════════════════════
-  END OF VOICE.JS
+  CHANGES IN THIS VERSION:
   
-  FEATURES IMPLEMENTED:
-  ✅ Speech-to-text (Arabic & English)
-  ✅ Text-to-speech (Arabic & English)
-  ✅ Auto language detection
-  ✅ Error handling
-  ✅ Browser compatibility checking
+  ✅ Fixed speakLesson() with proper Arabic voice selection
+  ✅ Added ensureVoicesLoaded() to handle async voice loading
+  ✅ Added stopAllSpeech() cleanup function
+  ✅ Better visual feedback on buttons during speech
+  ✅ Improved error messages for users
+  ✅ Voice logging for debugging
+  
+  HOW IT WORKS NOW:
+  1. Page loads → initVoiceFeatures()
+  2. Voices load asynchronously → ensureVoicesLoaded()
+  3. User clicks "Listen" button → speakLesson()
+  4. System finds Arabic voice → Speaks lesson
+  5. Button shows "Speaking..." → Returns to normal
   
   BROWSER COMPATIBILITY:
-  Chrome/Chromium: ⭐⭐⭐⭐⭐
-  Edge: ⭐⭐⭐⭐⭐
-  Safari: ⭐⭐⭐ (Limited TTS)
-  Firefox: ⭐ (No recognition)
+  Chrome/Chromium: ⭐⭐⭐⭐⭐ Full Arabic support
+  Edge: ⭐⭐⭐⭐⭐ Full Arabic support
+  Safari: ⭐⭐⭐ Limited Arabic voices
+  Firefox: ⭐⭐ Very limited voice support
   
-  KNOWN ISSUES:
-  1. Arabic speech recognition accuracy varies
-  2. Some devices lack Arabic TTS voices
-  3. Requires internet connection
-  4. Microphone permission needed
-  
-  FUTURE ENHANCEMENTS:
-  
-  1. Offline Speech Recognition:
-     - Implement using TensorFlow.js
-     - Train custom Arabic model
-     - Better accuracy for dialects
-  
-  2. Advanced Features:
-     - Real-time transcription
-     - Pronunciation feedback
-     - Accent detection
-     - Speaking rate adjustment
-  
-  3. Accessibility:
-     - Keyboard shortcuts for voice
-     - Visual feedback during recording
-     - Adjustable speech rate
-     - Voice command navigation
-  
-  4. Cloud Integration (Optional):
-     - Google Cloud Speech-to-Text
-     - Azure Speech Services
-     - Better Arabic dialect support
-     
-  PRIVACY NOTE:
-  Browser speech APIs send audio to cloud services
-  for processing. Inform users about this in production.
+  TESTING:
+  - Open console to see voice loading logs
+  - Click "Listen" button in lessons
+  - Should hear Arabic pronunciation
+  - Button should show "Speaking..." during playback
 ═══════════════════════════════════════════════════════════════
 */
