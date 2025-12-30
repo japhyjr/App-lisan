@@ -1,12 +1,14 @@
 /*
 ═══════════════════════════════════════════════════════════════
-  TRANSLATE.JS - TRANSLATION ENGINE WITH FREE API
+  TRANSLATE.JS - TRANSLATION ENGINE WITH FREE API + AUDIO
   
   NOW INCLUDES:
   ✅ MyMemory Free API (5 translations/day per user)
   ✅ Dictionary fallback (unlimited)
   ✅ User limits tracking
   ✅ Upgrade prompts when limit reached
+  ✅ AUDIO: Listen to Translation button
+  ✅ Auto language detection for proper pronunciation
 ═══════════════════════════════════════════════════════════════
 */
 
@@ -132,11 +134,16 @@ function translateWithDictionary(text, sourceLang, targetLang) {
 // ========== DISPLAY FUNCTIONS ==========
 
 /**
- * Display translation result
+ * Display translation result WITH AUDIO BUTTON
+ * ✅ UPDATED: Now includes "Listen to Translation" button
  */
 function displayTranslation(result, sourceLang, targetLang, originalText) {
   const isSourceArabic = sourceLang === 'ar';
   const isTargetArabic = targetLang === 'ar';
+  
+  // Determine which text to speak and in what language
+  const textToSpeak = result.translation;
+  const speakLang = isTargetArabic ? 'ar-SA' : 'en-US';
   
   let providerBadge = '';
   if (result.provider === 'MyMemory Free' || result.usedFreeAPI) {
@@ -155,6 +162,34 @@ function displayTranslation(result, sourceLang, targetLang, originalText) {
     `;
   }
   
+  // ✅ NEW: Audio button for translation output
+  const audioButton = `
+    <button 
+      onclick="speakTranslation('${escapeQuotes(textToSpeak)}', '${speakLang}')" 
+      class="btn-audio"
+      style="
+        margin-top: 1rem;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s;
+        font-size: 1rem;
+      "
+      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'"
+      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+    >
+      <span style="font-size: 1.2rem;">🔊</span>
+      <span>Listen to Translation</span>
+    </button>
+  `;
+  
   showOutput(`
     <div class="translation-block">
       <div class="original-text ${isSourceArabic ? 'arabic' : ''}">${originalText}</div>
@@ -164,9 +199,82 @@ function displayTranslation(result, sourceLang, targetLang, originalText) {
       ${result.pronunciation ? 
         `<div class="pronunciation"><strong>Pronunciation:</strong> ${result.pronunciation}</div>` 
         : ''}
+      ${audioButton}
       ${providerBadge}
     </div>
   `);
+}
+
+/**
+ * Escape quotes for safe HTML attribute insertion
+ */
+function escapeQuotes(text) {
+  return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ========== NEW: SPEAK TRANSLATION FUNCTION ==========
+
+/**
+ * Speak translated text with proper language
+ * ✅ NEW FUNCTION
+ */
+function speakTranslation(text, lang) {
+  // Check browser support
+  if (!('speechSynthesis' in window)) {
+    alert('🔇 Text-to-speech not supported in this browser. Please use Chrome or Edge.');
+    return;
+  }
+  
+  // Stop any ongoing speech
+  window.speechSynthesis.cancel();
+  
+  // Clean the text (remove HTML entities if any)
+  const cleanText = text
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+  
+  // Create utterance
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.lang = lang;
+  utterance.rate = 0.85; // Slightly slower for learning
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
+  
+  // Try to use native voice
+  const voices = window.speechSynthesis.getVoices();
+  const targetLang = lang.split('-')[0]; // 'ar' or 'en'
+  const matchingVoice = voices.find(voice => voice.lang.startsWith(targetLang));
+  
+  if (matchingVoice) {
+    utterance.voice = matchingVoice;
+    console.log('🔊 Using voice:', matchingVoice.name);
+  }
+  
+  // Visual feedback on all audio buttons
+  const buttons = document.querySelectorAll('.btn-audio');
+  buttons.forEach(button => {
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<span style="font-size: 1.2rem;">⏸️</span> <span>Speaking...</span>';
+    button.disabled = true;
+    
+    utterance.onend = () => {
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+    };
+    
+    utterance.onerror = () => {
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+      alert('🔇 Could not play audio. Please try again.');
+    };
+  });
+  
+  // Speak
+  window.speechSynthesis.speak(utterance);
+  console.log('🔊 Speaking:', cleanText.substring(0, 50) + '...', 'in', lang);
 }
 
 /**
@@ -388,30 +496,29 @@ function isArabic(text) {
   return arabicRegex.test(text);
 }
 
-console.log('✅ Translation engine loaded (with Free API support)');
+console.log('✅ Translation engine loaded (with Free API + Audio support)');
 
 /*
 ═══════════════════════════════════════════════════════════════
-  HOW IT WORKS NOW:
+  CHANGES IN THIS VERSION:
   
-  1. User enters text and clicks translate
-  2. Check dictionary first (instant, unlimited)
-     └─ Found? Display and done! ✅
-  3. Not in dictionary? Try MyMemory API
-     └─ Check daily limit (5 translations/day)
-     └─ Under limit? Call API and display ✅
-     └─ Over limit? Show upgrade prompt 💰
-  4. API failed? Show helpful message
+  ✅ Added "Listen to Translation" button to all translations
+  ✅ New speakTranslation() function with proper language detection
+  ✅ Visual feedback during speech (button changes to "Speaking...")
+  ✅ Automatic voice selection based on target language
+  ✅ Error handling for browsers without audio support
+  ✅ HTML entity cleaning for proper pronunciation
   
-  USER EXPERIENCE:
-  - First 5 translations: "AI-Powered" badge
-  - After 5: "Daily limit reached" message
-  - Dictionary phrases: Always work, show "Dictionary" badge
-  - Premium link: Prominent when limit reached
+  HOW IT WORKS:
+  1. User translates text
+  2. Translation appears with audio button
+  3. Click button → speaks in correct language
+  4. Button shows "Speaking..." during playback
+  5. Returns to normal when done
   
-  MONETIZATION:
-  - Free users get taste of AI power (5/day)
-  - When they hit limit → Clear upgrade path
-  - Premium = Unlimited AI translations
+  BROWSER SUPPORT:
+  ✅ Chrome/Edge: Full support (Arabic + English voices)
+  ✅ Safari: Good support
+  ⚠️ Firefox: May have limited voice options
 ═══════════════════════════════════════════════════════════════
 */
