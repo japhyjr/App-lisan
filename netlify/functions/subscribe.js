@@ -28,7 +28,7 @@ exports.handler = async (event) => {
       }
   
       // Get environment variables
-      const RESEND_API_KEY = process.env.RESEND_API_KEY;
+      const RESEND_API_KEY = process.env.RESEND_API_KEY1;
       const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
   
       // Check if configured
