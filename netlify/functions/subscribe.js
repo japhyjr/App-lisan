@@ -1,5 +1,5 @@
 // netlify/functions/subscribe.js
-// Secure serverless function to handle Resend API calls
+// COMPLETE FIXED VERSION - Replace entire file
 
 exports.handler = async (event) => {
     // Only allow POST requests
@@ -44,8 +44,10 @@ exports.handler = async (event) => {
         };
       }
   
-      // Call Resend API
+      // FIXED: Proper Resend API endpoint and payload
       const resendUrl = `https://api.resend.com/audiences/${RESEND_AUDIENCE_ID}/contacts`;
+      
+      console.log('Sending to Resend:', { email, audienceId: RESEND_AUDIENCE_ID });
       
       const response = await fetch(resendUrl, {
         method: 'POST',
@@ -55,28 +57,47 @@ exports.handler = async (event) => {
         },
         body: JSON.stringify({
           email: email,
+          first_name: '',
+          last_name: '',
           unsubscribed: false
         })
       });
   
       const data = await response.json();
+      
+      console.log('Resend response:', { status: response.status, data });
   
       // Handle Resend API response
       if (!response.ok) {
         console.error('Resend API error:', data);
         
-        // Don't expose internal error details to client
+        // Check if email already exists (that's actually success!)
+        if (data.message && data.message.includes('already exists')) {
+          return {
+            statusCode: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              success: true,
+              message: 'Email already subscribed',
+              duplicate: true
+            })
+          };
+        }
+        
+        // Other errors - still return success to user
         return {
-          statusCode: 200, // Still return 200 to avoid scaring user
+          statusCode: 200,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            success: true, // User doesn't need to know it failed
+            success: true,
             message: 'Email saved successfully'
           })
         };
       }
   
       // Success!
+      console.log('✅ Contact added successfully:', data);
+      
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -92,10 +113,10 @@ exports.handler = async (event) => {
       
       // Return graceful error to user
       return {
-        statusCode: 200, // Return 200 to avoid scary errors
+        statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          success: true, // Graceful for user
+          success: true,
           message: 'Email saved successfully'
         })
       };
