@@ -28,11 +28,11 @@ exports.handler = async (event) => {
       }
   
       // Get environment variables
-      const RESEND_API_KEY = process.env.RESEND_API_KEY1;
+      const RESEND_API_KEY1 = process.env.RESEND_API_KEY1;
       const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
   
       // Check if configured
-      if (!RESEND_API_KEY || !RESEND_AUDIENCE_ID) {
+      if (!RESEND_API_KEY1 || !RESEND_AUDIENCE_ID) {
         console.error('Missing Resend configuration');
         return {
           statusCode: 500,
@@ -52,7 +52,7 @@ exports.handler = async (event) => {
       const response = await fetch(resendUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Authorization': `Bearer ${RESEND_API_KEY1}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
