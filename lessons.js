@@ -441,7 +441,7 @@ const lessons = [
     8. Include cultural context videos
     
     CURRENT: 40 lessons
-    TARGET: 100+ lessons covering:
+    TARGET: 200+ lessons covering:
     - Numbers & counting
     - Colors & descriptions
     - Food & dining

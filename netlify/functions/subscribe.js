@@ -1,124 +1,234 @@
 // netlify/functions/subscribe.js
-// COMPLETE FIXED VERSION - Replace entire file
+// TRIPLE BACKUP VERSION - EmailOctopus + Notion + GitHub
 
 exports.handler = async (event) => {
-    // Only allow POST requests
-    if (event.httpMethod !== 'POST') {
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
+
+  try {
+    const { email } = JSON.parse(event.body);
+
+    // Validate email
+    if (!email || !email.includes('@')) {
       return {
-        statusCode: 405,
+        statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Method not allowed' })
+        body: JSON.stringify({ 
+          success: false,
+          error: 'Invalid email address' 
+        })
       };
     }
-  
-    try {
-      // Parse request body
-      const { email } = JSON.parse(event.body);
-  
-      // Validate email
-      if (!email || !email.includes('@')) {
-        return {
-          statusCode: 400,
+
+    // Get all environment variables
+    const EMAILOCTOPUS_API_KEY = process.env.EMAILOCTOPUS_API_KEY;
+    const EMAILOCTOPUS_LIST_ID = process.env.EMAILOCTOPUS_LIST_ID;
+    const NOTION_API_KEY = process.env.NOTION_API_KEY;
+    const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+    const GITHUB_REPO = process.env.GITHUB_REPO; // format: "username/repo"
+    const GITHUB_FILE_PATH = process.env.GITHUB_FILE_PATH || "subscribers.txt";
+
+    const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+
+    const results = {
+      emailoctopus: false,
+      notion: false,
+      github: false,
+      discord: false
+    };
+
+    // === BACKUP 1: EmailOctopus ===
+    if (EMAILOCTOPUS_API_KEY && EMAILOCTOPUS_LIST_ID) {
+      try {
+        const octopusUrl = `https://emailoctopus.com/api/1.6/lists/${EMAILOCTOPUS_LIST_ID}/contacts`;
+        const octopusResponse = await fetch(octopusUrl, {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            success: false,
-            error: 'Invalid email address' 
+          body: JSON.stringify({
+            api_key: EMAILOCTOPUS_API_KEY,
+            email_address: email,
+            status: 'SUBSCRIBED'
           })
-        };
-      }
-  
-      // Get environment variables
-      const RESEND_API_KEY = process.env.RESEND_API_KEY;
-      const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
-  
-      // Check if configured
-      if (!RESEND_API_KEY || !RESEND_AUDIENCE_ID) {
-        console.error('Missing Resend configuration');
-        return {
-          statusCode: 500,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            success: false,
-            error: 'Email service not configured' 
-          })
-        };
-      }
-  
-      // FIXED: Proper Resend API endpoint and payload
-      const resendUrl = `https://api.resend.com/audiences/${RESEND_AUDIENCE_ID}/contacts`;
-      
-      console.log('Sending to Resend:', { email, audienceId: RESEND_AUDIENCE_ID });
-      
-      const response = await fetch(resendUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${RESEND_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email,
-          first_name: '',
-          last_name: '',
-          unsubscribed: false
-        })
-      });
-  
-      const data = await response.json();
-      
-      console.log('Resend response:', { status: response.status, data });
-  
-      // Handle Resend API response
-      if (!response.ok) {
-        console.error('Resend API error:', data);
-        
-        // Check if email already exists (that's actually success!)
-        if (data.message && data.message.includes('already exists')) {
-          return {
-            statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              success: true,
-              message: 'Email already subscribed',
-              duplicate: true
-            })
-          };
+        });
+
+        if (octopusResponse.ok || octopusResponse.status === 409) {
+          results.emailoctopus = true;
+          console.log('✅ EmailOctopus: Success');
         }
-        
-        // Other errors - still return success to user
-        return {
-          statusCode: 200,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            success: true,
-            message: 'Email saved successfully'
-          })
-        };
+      } catch (error) {
+        console.error('❌ EmailOctopus error:', error.message);
       }
-  
-      // Success!
-      console.log('✅ Contact added successfully:', data);
-      
+    }
+
+    // === BACKUP 2: Notion ===
+    if (NOTION_API_KEY && NOTION_DATABASE_ID) {
+      try {
+        const notionUrl = 'https://api.notion.com/v1/pages';
+        const notionResponse = await fetch(notionUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${NOTION_API_KEY}`,
+            'Content-Type': 'application/json',
+            'Notion-Version': '2022-06-28'
+          },
+          body: JSON.stringify({
+            parent: { database_id: NOTION_DATABASE_ID },
+            properties: {
+              Email: {
+                title: [
+                  {
+                    text: {
+                      content: email
+                    }
+                  }
+                ]
+              },
+              Status: {
+                select: {
+                  name: 'Subscribed'
+                }
+              },
+              Date: {
+                date: {
+                  start: new Date().toISOString()
+                }
+              }
+            }
+          })
+        });
+
+        if (notionResponse.ok) {
+          results.notion = true;
+          console.log('✅ Notion: Success');
+        }
+      } catch (error) {
+        console.error('❌ Notion error:', error.message);
+      }
+    }
+
+    // === BACKUP 3: Discord Notification ===
+    if (DISCORD_WEBHOOK_URL) {
+      try {
+        const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            embeds: [{
+              title: '🎉 New Subscriber!',
+              description: `**Email:** ${email}`,
+              color: 5763719, // Green color
+              timestamp: new Date().toISOString(),
+              footer: {
+                text: 'App-lisan Waitlist'
+              }
+            }]
+          })
+        });
+
+        if (discordResponse.ok) {
+          results.discord = true;
+          console.log('✅ Discord: Success');
+        }
+      } catch (error) {
+        console.error('❌ Discord error:', error.message);
+      }
+    }
+
+    // === BACKUP 4: GitHub (Append to file) ===
+    if (GITHUB_TOKEN && GITHUB_REPO) {
+      try {
+        // First, get the current file (if exists)
+        const getFileUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+        const getResponse = await fetch(getFileUrl, {
+          headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        let sha = null;
+        let currentContent = '';
+
+        if (getResponse.ok) {
+          const fileData = await getResponse.json();
+          sha = fileData.sha;
+          currentContent = Buffer.from(fileData.content, 'base64').toString('utf8');
+        }
+
+        // Append new email with timestamp
+        const timestamp = new Date().toISOString();
+        const newLine = `${email},${timestamp}\n`;
+        const updatedContent = currentContent + newLine;
+        const encodedContent = Buffer.from(updatedContent).toString('base64');
+
+        // Update file
+        const updateUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+        const updateResponse = await fetch(updateUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: `Add subscriber: ${email}`,
+            content: encodedContent,
+            sha: sha // null if file doesn't exist (will create it)
+          })
+        });
+
+        if (updateResponse.ok) {
+          results.github = true;
+          console.log('✅ GitHub: Success');
+        }
+      } catch (error) {
+        console.error('❌ GitHub error:', error.message);
+      }
+    }
+
+    // Log results
+    console.log('Backup Results:', results);
+
+    // Success if at least ONE backup worked
+    const anySuccess = results.emailoctopus || results.notion || results.github || results.discord;
+
+    if (anySuccess) {
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           success: true,
-          message: 'Successfully added to waitlist!',
-          contactId: data.id
+          message: 'Successfully subscribed!',
+          backups: results
         })
       };
-  
-    } catch (error) {
-      console.error('Function error:', error);
-      
-      // Return graceful error to user
+    } else {
+      // All failed - still return success to user but log it
+      console.error('⚠️ All backups failed');
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           success: true,
-          message: 'Email saved successfully'
+          message: 'Subscription received'
         })
       };
     }
-  };
+
+  } catch (error) {
+    console.error('Function error:', error);
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        success: true,
+        message: 'Subscription received'
+      })
+    };
+  }
+};
