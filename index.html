@@ -148,7 +148,7 @@
     <section class="section" aria-labelledby="translator-heading">
       <!-- Navigation Buttons -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 0.5rem; flex-wrap: wrap;">
-        <h2 id="translator-heading" style="margin: 0; flex: 1;">🔄 Translator</h2>
+        <h2 id="translator-heading" style="margin: 0; flex: 1;" data-i18n="app_title">🔄 Translator</h2>
         <a href="landing.html" class="nav-btn nav-btn-home" aria-label="Go to home page">
           🏠 Home
         </a>
@@ -172,13 +172,13 @@
       
       <!-- Translation Buttons -->
       <div class="buttons" role="group" aria-label="Translation controls">
-        <button onclick="translateText('ar-en')" class="btn-translate" aria-label="Translate from Arabic to English">
+        <button onclick="translateText('ar-en')" class="btn-translate" data-i18n="translate_button" aria-label="Translate from Arabic to English">
           <span>🇸🇦</span> Arabic → English
         </button>
-        <button onclick="translateText('en-ar')" class="btn-translate" aria-label="Translate from English to Arabic">
+        <button onclick="translateText('en-ar')" class="btn-translate" data-i18n="translate_button" aria-label="Translate from English to Arabic">
           <span>🇬🇧</span> English → Arabic
         </button>
-        <button class="btn-clear" onclick="clearAll()" aria-label="Clear all text">
+        <button class="btn-clear" onclick="clearAll()" data-i18n="clear_button" aria-label="Clear all text">
           <span>🗑️</span> Clear
         </button>
       </div>
