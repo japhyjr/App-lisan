@@ -1,15 +1,11 @@
 /*
 ═══════════════════════════════════════════════════════════════
-  EMAIL-CAPTURE.JS - Secure Netlify Function Integration
+  EMAIL-CAPTURE.JS - Multi-language + Page-specific Triggers
   
-  FEATURES:
-  - Email capture with validation
-  - Secure backend integration (NO API keys exposed!)
-  - Progressive engagement triggers
-  - Thank you flow
-  - Analytics tracking
-  
-  SECURITY: Uses Netlify serverless function to protect API keys
+  TRIGGERS:
+  1. Landing Page: Exit intent
+  2. Premium Page: Exit intent
+  3. Index/App Page: Translation limit reached
 ═══════════════════════════════════════════════════════════════
 */
 
@@ -17,22 +13,35 @@
 
 const EMAIL_CONFIG = {
   netlify: {
-    endpoint: '/.netlify/functions/subscribe', // Netlify function endpoint
-    enabled: true // Always true - uses secure backend
+    endpoint: '/.netlify/functions/subscribe',
+    enabled: true
   },
   triggers: {
-    afterTranslations: 10, // Ask after 10 translations
-    afterLessons: 5,       // Ask after 5 lessons
-    onExit: true,          // Show exit intent popup
-    onLimit: true          // Show when daily limit reached
+    translationLimit: 5,    // Free translations per day
+    exitIntent: true,        // Show on exit (LP & Premium)
+    limitReached: true       // Show when limit hit (App)
   }
 };
 
+// ========== PAGE DETECTION ==========
+
+function detectCurrentPage() {
+  const path = window.location.pathname;
+  const filename = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+  
+  if (filename.includes('landing') || path === '/' || filename === '') {
+    return 'landing';
+  } else if (filename.includes('premium')) {
+    return 'premium';
+  } else if (filename.includes('index') || filename.includes('app')) {
+    return 'app';
+  }
+  
+  return 'unknown';
+}
+
 // ========== EMAIL VALIDATION ==========
 
-/**
- * Validate email format
- */
 function validateEmail(email) {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
@@ -40,19 +49,14 @@ function validateEmail(email) {
 
 // ========== EMAIL CAPTURE ==========
 
-/**
- * Capture email via secure Netlify function
- */
 async function captureEmail(email, source = 'unknown') {
-  // Validate email
   if (!validateEmail(email)) {
     return {
       success: false,
-      error: 'Invalid email format'
+      error: window.t ? window.t('error') : 'Invalid email format'
     };
   }
   
-  // Check if already captured
   if (localStorage.getItem('userEmail') === email) {
     return {
       success: true,
@@ -61,41 +65,28 @@ async function captureEmail(email, source = 'unknown') {
     };
   }
   
-  // Store locally first (backup, always works)
   localStorage.setItem('userEmail', email);
   localStorage.setItem('emailCaptureDate', new Date().toISOString());
   localStorage.setItem('emailCaptureSource', source);
   
-  // Send to secure Netlify function
   if (EMAIL_CONFIG.netlify.enabled) {
     try {
       const result = await sendToNetlify(email);
       
       if (result.success) {
-        console.log('✅ Email added to Resend via Netlify');
-        trackEvent('email_captured', {
-          source: source,
-          method: 'netlify'
-        });
+        console.log('✅ Email successfully added to waitlist!');
+        trackEvent('email_captured', { source, method: 'netlify' });
       }
       
       return result;
       
     } catch (error) {
       console.error('Netlify function error:', error);
-      // Continue - we already have email stored locally
-      trackEvent('email_captured_offline', {
-        source: source,
-        method: 'local_only'
-      });
+      trackEvent('email_captured_offline', { source, method: 'local_only' });
     }
   }
   
-  // Track local save
-  trackEvent('email_captured', {
-    source: source,
-    method: 'local'
-  });
+  trackEvent('email_captured', { source, method: 'local' });
   
   return {
     success: true,
@@ -104,16 +95,11 @@ async function captureEmail(email, source = 'unknown') {
   };
 }
 
-/**
- * Send email to Netlify serverless function
- */
 async function sendToNetlify(email) {
   try {
     const response = await fetch(EMAIL_CONFIG.netlify.endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
     
@@ -137,38 +123,53 @@ async function sendToNetlify(email) {
   }
 }
 
-// ========== PROGRESSIVE ENGAGEMENT ==========
+// ========== TRANSLATION LIMIT TRACKING ==========
 
-/**
- * Check if should show email prompt based on usage
- */
-function shouldShowEmailPrompt() {
-  // Already captured?
-  if (localStorage.getItem('userEmail')) {
-    return false;
+function getTranslationCount() {
+  const today = new Date().toDateString();
+  const stored = localStorage.getItem('translationStats');
+  
+  if (!stored) {
+    return { count: 0, date: today };
   }
   
-  // Get usage stats
-  const translationCount = parseInt(localStorage.getItem('totalTranslations') || '0');
-  const lessonCount = parseInt(localStorage.getItem('lessonsCompleted') || '0');
+  const stats = JSON.parse(stored);
   
-  // Check triggers
-  if (translationCount >= EMAIL_CONFIG.triggers.afterTranslations) {
-    return 'after_translations';
+  // Reset if different day
+  if (stats.date !== today) {
+    return { count: 0, date: today };
   }
   
-  if (lessonCount >= EMAIL_CONFIG.triggers.afterLessons) {
-    return 'after_lessons';
-  }
-  
-  return false;
+  return stats;
 }
 
-/**
- * Show email capture popup
- */
-function showEmailPopup(trigger = 'manual', customMessage = null) {
-  // Don't show if already captured
+function incrementTranslationCount() {
+  const stats = getTranslationCount();
+  stats.count += 1;
+  
+  localStorage.setItem('translationStats', JSON.stringify(stats));
+  
+  // Check if limit reached
+  if (stats.count >= EMAIL_CONFIG.triggers.translationLimit) {
+    onTranslationLimitReached();
+  }
+  
+  return stats;
+}
+
+function onTranslationLimitReached() {
+  // Only show if user hasn't subscribed
+  if (!localStorage.getItem('userEmail')) {
+    // Small delay for better UX
+    setTimeout(() => {
+      showEmailPopup('limit_reached');
+    }, 1000);
+  }
+}
+
+// ========== EMAIL POPUP ==========
+
+function showEmailPopup(trigger = 'manual') {
   if (localStorage.getItem('userEmail')) {
     return;
   }
@@ -178,31 +179,30 @@ function showEmailPopup(trigger = 'manual', customMessage = null) {
   if (lastShown) {
     const hoursSince = (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60);
     if (hoursSince < 24) {
-      return; // Don't show more than once per day
+      return;
     }
   }
   
-  // Messages based on trigger
-  const messages = {
-    after_translations: {
-      title: '🎉 You\'re on a roll!',
-      message: 'You\'ve used 10 translations! Want unlimited access?'
-    },
-    after_lessons: {
-      title: '📚 Great progress!',
-      message: 'You\'ve completed 5 lessons! Join our waitlist for premium features.'
-    },
-    limit_reached: {
-      title: '🔒 Daily Limit Reached',
-      message: 'Get notified when premium launches with unlimited translations!'
-    },
-    exit_intent: {
-      title: '👋 Before you go...',
-      message: 'Join our list and get early access to premium features!'
-    }
-  };
+  // Get translated text
+  const t = window.t || ((key) => key);
   
-  const content = messages[trigger] || messages.after_translations;
+  // Messages based on trigger and page
+  const currentPage = detectCurrentPage();
+  let title, message;
+  
+  if (trigger === 'exit_intent' && currentPage === 'landing') {
+    title = t('popup_exit_title');
+    message = t('popup_exit_message');
+  } else if (trigger === 'exit_intent' && currentPage === 'premium') {
+    title = t('popup_exit_title');
+    message = t('popup_exit_message');
+  } else if (trigger === 'limit_reached') {
+    title = t('popup_limit_title');
+    message = t('popup_limit_message');
+  } else {
+    title = t('popup_exit_title');
+    message = t('popup_exit_message');
+  }
   
   const popup = document.createElement('div');
   popup.className = 'email-popup-overlay';
@@ -210,125 +210,105 @@ function showEmailPopup(trigger = 'manual', customMessage = null) {
     <div class="email-popup">
       <button class="popup-close" onclick="this.parentElement.parentElement.remove()">×</button>
       
-      <h2>${content.title}</h2>
+      <h2>${title}</h2>
       <p style="font-size: 1.1rem; margin: 1rem 0;">
-        ${customMessage || content.message}
+        ${message}
       </p>
       
       <form onsubmit="handleEmailSubmit(event, '${trigger}')" class="email-form">
         <input 
           type="email" 
           id="popup-email" 
-          placeholder="your@email.com" 
+          placeholder="${t('email_placeholder')}" 
           required
           autofocus
         >
         <button type="submit" class="btn btn-primary">
-          Join Waitlist 🔔
+          ${t('join_waitlist')}
         </button>
       </form>
       
       <p style="font-size: 0.85rem; color: #666; margin-top: 1rem;">
-        ✅ Get early access pricing<br>
-        ✅ No spam, unsubscribe anytime
+        ✅ ${currentPage === 'premium' ? t('premium_features') : t('get_started')}<br>
+        ✅ ${t('popup_success_note')}
       </p>
       
       <button 
         onclick="this.parentElement.parentElement.remove()" 
         style="background: none; border: none; color: #999; cursor: pointer; margin-top: 1rem;"
       >
-        Maybe later
+        ${t('maybe_later')}
       </button>
     </div>
   `;
   
   document.body.appendChild(popup);
-  
-  // Record that we showed popup
   localStorage.setItem('emailPopupLastShown', Date.now().toString());
-  
-  trackEvent('email_popup_shown', { trigger: trigger });
+  trackEvent('email_popup_shown', { trigger, page: currentPage });
 }
 
-/**
- * Handle email form submission
- */
 async function handleEmailSubmit(event, source) {
   event.preventDefault();
   
+  const t = window.t || ((key) => key);
   const email = document.getElementById('popup-email').value;
   const button = event.target.querySelector('button[type="submit"]');
   
-  // Disable button
   button.disabled = true;
-  button.textContent = 'Adding...';
+  button.textContent = t('loading');
   
-  // Capture email
   const result = await captureEmail(email, source);
   
   if (result.success) {
-    // Show success message
     event.target.closest('.email-popup').innerHTML = `
       <div style="text-align: center; padding: 2rem;">
         <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
-        <h2>You're In!</h2>
+        <h2>${t('popup_success_title')}</h2>
         <p style="font-size: 1.1rem; margin: 1rem 0;">
-          Thanks for joining the waitlist!
+          ${t('popup_success_message')}
         </p>
         <p style="color: #666;">
-          We'll notify you about premium launch with special pricing!
+          ${t('popup_success_note')}
         </p>
         <button 
           onclick="this.closest('.email-popup-overlay').remove()" 
           class="btn btn-primary"
           style="margin-top: 1.5rem;"
         >
-          Continue Learning →
+          ${t('continue_learning')}
         </button>
       </div>
     `;
   } else {
-    // Show error
     button.disabled = false;
-    button.textContent = 'Try Again';
-    alert(result.error || 'Failed to add email. Please try again.');
+    button.textContent = t('try_again');
+    alert(result.error || t('error'));
   }
 }
 
 // ========== EXIT INTENT ==========
 
-/**
- * Show popup when user tries to leave
- */
 function initExitIntent() {
-  if (!EMAIL_CONFIG.triggers.onExit) return;
+  const currentPage = detectCurrentPage();
+  
+  // Only on landing and premium pages
+  if (currentPage !== 'landing' && currentPage !== 'premium') {
+    return;
+  }
+  
+  if (!EMAIL_CONFIG.triggers.exitIntent) return;
   if (localStorage.getItem('userEmail')) return;
   
   let exitShown = false;
   
   document.addEventListener('mouseleave', (e) => {
-    // Mouse left viewport at top
     if (e.clientY < 10 && !exitShown) {
       exitShown = true;
       showEmailPopup('exit_intent');
     }
   });
-}
-
-// ========== AUTO-TRIGGER SYSTEM ==========
-
-/**
- * Check and show email prompt if appropriate
- */
-function checkAndShowEmailPrompt() {
-  const trigger = shouldShowEmailPrompt();
   
-  if (trigger) {
-    // Small delay for better UX
-    setTimeout(() => {
-      showEmailPopup(trigger);
-    }, 2000);
-  }
+  console.log(`✅ Exit intent enabled for ${currentPage} page`);
 }
 
 // ========== ANALYTICS ==========
@@ -342,17 +322,23 @@ function trackEvent(eventName, properties) {
 
 // ========== INITIALIZATION ==========
 
-/**
- * Initialize email capture system
- */
 function initEmailCapture() {
-  // Set up exit intent
-  initExitIntent();
+  const currentPage = detectCurrentPage();
   
-  // Check if should show popup (after page load)
-  setTimeout(checkAndShowEmailPrompt, 3000);
+  console.log(`📄 Current page: ${currentPage}`);
   
-  console.log('✅ Email capture initialized (Secure Netlify mode)');
+  // Init exit intent for landing & premium
+  if (currentPage === 'landing' || currentPage === 'premium') {
+    initExitIntent();
+  }
+  
+  // Init translation tracking for app page
+  if (currentPage === 'app') {
+    console.log('✅ Translation limit tracking enabled');
+    // Translation count will be incremented by your translate function
+  }
+  
+  console.log('✅ Email capture initialized (Multi-language ready)');
 }
 
 // Auto-initialize when DOM ready
@@ -368,20 +354,11 @@ window.EMAIL_CAPTURE = {
   captureEmail,
   showEmailPopup,
   validateEmail,
-  shouldShowEmailPrompt,
-  checkAndShowEmailPrompt
+  incrementTranslationCount,
+  getTranslationCount
 };
 
-console.log('✅ Email capture module loaded (Secure mode - No API keys exposed!)');
+// Make handleEmailSubmit global for inline onclick
+window.handleEmailSubmit = handleEmailSubmit;
 
-/*
-═══════════════════════════════════════════════════════════════
-  SECURITY NOTES:
-  
-  ✅ NO API KEYS in this file!
-  ✅ Uses Netlify serverless function
-  ✅ API keys stored securely in Netlify environment variables
-  ✅ Safe to commit to GitHub
-  
-═══════════════════════════════════════════════════════════════
-*/
+console.log('✅ Email capture module loaded (Multi-language + Page-specific triggers)');

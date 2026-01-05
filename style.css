@@ -452,6 +452,254 @@
     margin: 2rem 0;
   }
   
+/*
+═══════════════════════════════════════════════════════════════
+  LANGUAGE SWITCHER + RTL SUPPORT
+  Add this to your style.css
+═══════════════════════════════════════════════════════════════
+*/
+
+/* ========== LANGUAGE SWITCHER BUTTON ========== */
+
+.language-switcher {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.language-switcher:hover {
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.lang-option {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  color: #666;
+}
+
+.lang-option:hover {
+  color: #333;
+  background: #f5f5f5;
+}
+
+.lang-option.active {
+  color: #007bff;
+  background: #e7f3ff;
+  font-weight: 700;
+}
+
+.lang-divider {
+  color: #ccc;
+  user-select: none;
+}
+
+/* ========== ARABIC FONT ========== */
+
+body[lang="ar"],
+body[lang="ar"] * {
+  font-family: 'Cairo', 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ========== RTL (RIGHT-TO-LEFT) SUPPORT ========== */
+
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] body {
+  text-align: right;
+}
+
+/* Flip buttons and inputs */
+[dir="rtl"] .btn,
+[dir="rtl"] button,
+[dir="rtl"] input {
+  text-align: right;
+}
+
+/* Flip flex containers */
+[dir="rtl"] .flex,
+[dir="rtl"] .d-flex {
+  flex-direction: row-reverse;
+}
+
+/* Flip grid layouts */
+[dir="rtl"] .grid {
+  direction: rtl;
+}
+
+/* Adjust padding/margin for RTL */
+[dir="rtl"] .ml-auto {
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+[dir="rtl"] .mr-auto {
+  margin-right: 0 !important;
+  margin-left: auto !important;
+}
+
+/* Fix language switcher position in RTL */
+[dir="rtl"] .language-switcher {
+  right: auto;
+  left: 20px;
+}
+
+/* ========== EMAIL POPUP RTL ========== */
+
+[dir="rtl"] .email-popup {
+  text-align: right;
+}
+
+[dir="rtl"] .popup-close {
+  right: auto;
+  left: 1rem;
+}
+
+/* ========== FORM ELEMENTS RTL ========== */
+
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="text"],
+[dir="rtl"] textarea {
+  text-align: right;
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
+
+/* ========== NAVIGATION RTL ========== */
+
+[dir="rtl"] nav ul {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .navbar {
+  direction: rtl;
+}
+
+/* ========== RESPONSIVE ========== */
+
+@media (max-width: 768px) {
+  .language-switcher {
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  [dir="rtl"] .language-switcher {
+    right: auto;
+    left: 10px;
+  }
+}
+
+/* ========== ARABIC NUMBER STYLING ========== */
+
+body[lang="ar"] {
+  font-feature-settings: "cv01", "cv02", "cv03", "cv04";
+}
+
+/* Use Arabic-Indic numerals */
+body[lang="ar"] .use-arabic-numerals {
+  font-variant-numeric: arabic-indic;
+}
+
+/* ========== SMOOTH TRANSITIONS ========== */
+
+[dir],
+[lang] {
+  transition: direction 0.3s ease, font-family 0.3s ease;
+}
+
+/* ========== ADDITIONAL EMAIL POPUP STYLES ========== */
+
+/* Email Popup Styles */
+.email-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease;
+}
+
+.email-popup {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.popup-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #999;
+  line-height: 1;
+}
+
+.popup-close:hover {
+  color: #333;
+}
+
+.email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.email-form input {
+  padding: 1rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.email-form input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
   /* ========== FOOTER ========== */
   footer {
     text-align: center;
